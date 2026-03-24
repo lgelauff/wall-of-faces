@@ -1,11 +1,12 @@
 """
-replicas.py — Toolforge replica DB access.
+replicas.py — Toolforge replica DB access and XTools API calls.
 
 Used only for numeric counts — never for content (wikitext, templates, etc.).
 Content always comes from the MediaWiki API (src/wiki.py).
 
-Two logical connections, created lazily on first use:
-    centralauth_p  — global account info (registration date, per-wiki edit counts)
+Replica DB (centralauth_p):
+    get_global_user_info  — registration date from globaluser
+    get_wiki_edit_counts  — wiki list from localuser; counts via XTools API
 
 The `~/replica.my.cnf` credential file is the standard Toolforge authentication
 mechanism. On a developer machine without this file, ReplicaUnavailableError is
@@ -22,10 +23,18 @@ from __future__ import annotations
 import configparser
 import os
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 from typing import Any
 
+import requests
 from sqlalchemy import Engine, create_engine, text
+
+_XTOOLS_USER_AGENT = (
+    'WallOfFaces/1.0 (Toolforge tool profile-creator-nlwiki; '
+    'https://profile-creator-nlwiki.toolforge.org)'
+)
+_XTOOLS_BASE = 'https://xtools.wmcloud.org/api'
 
 
 # ── Exceptions ────────────────────────────────────────────────────────────────
@@ -134,15 +143,39 @@ def get_global_user_info(username: str) -> dict[str, Any] | None:
     }
 
 
+def _xtools_edit_count(wiki: str, username: str) -> int | None:
+    """
+    Fetch edit count for *username* on *wiki* via the XTools simple_editcount API.
+
+    wiki is the MediaWiki dbname, e.g. 'nlwiki', 'commonswiki'.
+    Returns the total edit count as int, or None if the request fails or the
+    user is not found on that wiki.
+
+    Requests are made synchronously as requested by XTools documentation.
+    """
+    url = f'{_XTOOLS_BASE}/user/simple_editcount/{quote(wiki)}/{quote(username)}'
+    try:
+        resp = requests.get(url, headers={'User-Agent': _XTOOLS_USER_AGENT}, timeout=10)
+        if resp.status_code == 404:
+            return None
+        resp.raise_for_status()
+        data = resp.json()
+        count = data.get('total_edit_count')
+        return int(count) if count is not None else None
+    except Exception:
+        return None
+
+
 def get_wiki_edit_counts(username: str) -> dict[str, int]:
     """
-    Fetch per-wiki edit counts for a user from CentralAuth's localuser table.
+    Fetch per-wiki edit counts for a user.
+
+    Queries CentralAuth's localuser table for the list of wikis the user is
+    attached to (Toolforge replicas do not have lu_editcount on localuser),
+    then fetches each count from the XTools API synchronously.
 
     Returns a dict mapping wiki dbname → edit count, e.g.:
         {'nlwiki': 12847, 'commonswiki': 543, 'wikidatawiki': 120}
-
-    Wikis with NULL edit count are excluded (old records before CentralAuth
-    started tracking counts; treat as zero by omission).
 
     Returns an empty dict on any error.
     Raises ReplicaUnavailableError if the replica is inaccessible.
@@ -150,13 +183,21 @@ def get_wiki_edit_counts(username: str) -> dict[str, int]:
     with _centralauth().connect() as conn:
         rows = conn.execute(
             text("""
-                SELECT lu_wiki, lu_editcount
+                SELECT lu_wiki
                 FROM localuser
                 WHERE lu_name = :name
-                  AND lu_editcount IS NOT NULL
-                  AND lu_editcount > 0
             """),
             {'name': username},
         ).fetchall()
 
-    return {row.lu_wiki: int(row.lu_editcount) for row in rows}
+    wikis = [row.lu_wiki for row in rows]
+    if not wikis:
+        return {}
+
+    counts: dict[str, int] = {}
+    for wiki in wikis:
+        count = _xtools_edit_count(wiki, username)
+        if count is not None and count > 0:
+            counts[wiki] = count
+
+    return counts

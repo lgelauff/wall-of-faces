@@ -131,39 +131,73 @@ class TestGetGlobalUserInfo:
 
 # ── get_wiki_edit_counts ──────────────────────────────────────────────────────
 
+def _wiki_list_row(lu_wiki: str):
+    row = MagicMock()
+    row.lu_wiki = lu_wiki
+    return row
+
+
+def _xtools_response(count):
+    """Return a mock requests.Response for an XTools simple_editcount call."""
+    resp = MagicMock()
+    resp.status_code = 200
+    resp.json.return_value = {"total_edit_count": count}
+    resp.raise_for_status.return_value = None
+    return resp
+
+
 class TestGetWikiEditCounts:
-    def _call(self, rows):
-        engine = _mock_engine(fetchall_return=rows)
-        with patch("src.replicas._centralauth", return_value=engine):
+    def _call(self, wiki_list, counts_by_wiki: dict):
+        """
+        wiki_list: list of lu_wiki strings returned by centralauth
+        counts_by_wiki: dict of wiki → total_edit_count (or None to simulate 404/missing)
+        """
+        ca_engine = _mock_engine(fetchall_return=[_wiki_list_row(w) for w in wiki_list])
+
+        def xtools_get(url, **kwargs):
+            # Extract wiki from URL: .../simple_editcount/{wiki}/{username}
+            parts = url.rstrip("/").split("/")
+            wiki = parts[-2]
+            count = counts_by_wiki.get(wiki)
+            if count is None:
+                resp = MagicMock()
+                resp.status_code = 404
+                return resp
+            return _xtools_response(count)
+
+        with patch("src.replicas._centralauth", return_value=ca_engine), \
+             patch("src.replicas.requests.get", side_effect=xtools_get):
             from src.replicas import get_wiki_edit_counts
             return get_wiki_edit_counts("TestUser")
 
-    def test_returns_dict(self):
-        result = self._call([])
-        assert isinstance(result, dict)
+    def test_empty_wiki_list_returns_empty_dict(self):
+        assert self._call([], {}) == {}
 
     def test_maps_wiki_to_count(self):
-        rows = [_wiki_row("nlwiki", 12847), _wiki_row("commonswiki", 543)]
-        result = self._call(rows)
+        result = self._call(["nlwiki", "commonswiki"], {"nlwiki": 12847, "commonswiki": 543})
         assert result == {"nlwiki": 12847, "commonswiki": 543}
 
     def test_counts_coerced_to_int(self):
-        rows = [_wiki_row("nlwiki", "500")]
-        result = self._call(rows)
+        result = self._call(["nlwiki"], {"nlwiki": 500})
         assert isinstance(result["nlwiki"], int)
 
-    def test_empty_rows_returns_empty_dict(self):
-        assert self._call([]) == {}
+    def test_wiki_with_no_user_row_excluded(self):
+        result = self._call(["nlwiki", "commonswiki"], {"nlwiki": 100})
+        assert "commonswiki" not in result
+        assert result["nlwiki"] == 100
 
     def test_multiple_wikis(self):
-        rows = [
-            _wiki_row("nlwiki", 10000),
-            _wiki_row("wikidatawiki", 250),
-            _wiki_row("commonswiki", 88),
-        ]
-        result = self._call(rows)
+        result = self._call(
+            ["nlwiki", "wikidatawiki", "commonswiki"],
+            {"nlwiki": 10000, "wikidatawiki": 250, "commonswiki": 88},
+        )
         assert len(result) == 3
         assert result["wikidatawiki"] == 250
+
+    def test_zero_count_excluded(self):
+        # wikis with 0 edits are not included
+        result = self._call(["nlwiki"], {"nlwiki": 0})
+        assert "nlwiki" not in result
 
 
 # ── _load_replica_credentials ─────────────────────────────────────────────────
