@@ -10,6 +10,8 @@ import os as _os  # needed before config block for SNAPSHOT_ROOT env override
 # ── Community configuration ───────────────────────────────────────────────────
 # Edit this block for each deployment; do not touch anything below it.
 
+TOOL_NAME              = "profile-creator-nlwiki"  # Toolforge tool name; used for secrets path
+
 HOME_WIKI              = "nlwiki"
 HOME_WIKI_URL          = "https://nl.wikipedia.org"
 HOME_WIKI_LABEL        = "nl.wikipedia.org · Wikimedia Nederland"
@@ -87,11 +89,11 @@ def sanitise_signature(html: str) -> str:
 
 def _read_secret(name: str) -> str:
     """
-    Read a secret from /run/secrets/wall-of-faces/<name> (Kubernetes secret mount),
+    Read a secret from /run/secrets/profile-creator-nlwiki/<name> (Kubernetes secret mount),
     falling back to the environment variable NAME (uppercased, hyphens → underscores).
     Returns an empty string if neither is present.
     """
-    file_path = f'/run/secrets/wall-of-faces/{name}'
+    file_path = f'/run/secrets/{TOOL_NAME}/{name}'
     if os.path.exists(file_path):
         with open(file_path) as f:
             return f.read().strip()

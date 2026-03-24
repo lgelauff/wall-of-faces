@@ -203,7 +203,7 @@ The app uses Wikimedia OAuth 2.0 so editors can log in with their Wikimedia acco
    - **Application description:** brief description of the tool and event
    - **This consumer is for use only by `<YourWikimediaUsername>`** — leave **unchecked** for a public tool that all editors can use
    - **Confidential client:** yes
-   - **Callback URL:** `https://wall-of-faces.toolforge.org/oauth-callback`
+   - **Callback URL:** `https://profile-creator-nlwiki.toolforge.org/oauth-callback`
    - **Applicable project:** leave blank (all wikis)
    - **Allowed grants:** check **Authorization code** only — leave Refresh token and Client credentials unchecked
    - **Grants:** select **"User identity verification only"**
@@ -219,19 +219,19 @@ SSH into the Toolforge login node:
 ssh your-wikimedia-username@login.toolforge.org
 ```
 
-Create the tool account. The tool name becomes part of the URL (`wall-of-faces.toolforge.org`), so choose carefully:
+Create the tool account. The tool name becomes part of the URL (`profile-creator-nlwiki.toolforge.org`), so choose carefully:
 
 ```bash
-toolforge tools create wall-of-faces
+toolforge tools create profile-creator-nlwiki
 ```
 
 Switch to the tool account:
 
 ```bash
-become wall-of-faces
+become profile-creator-nlwiki
 ```
 
-Your shell prompt will change to `tools.wall-of-faces@...`. All remaining commands in this guide should be run as the tool account unless stated otherwise.
+Your shell prompt will change to `tools.profile-creator-nlwiki@...`. All remaining commands in this guide should be run as the tool account unless stated otherwise.
 
 ### Step 3 — Check out the code
 
@@ -250,7 +250,7 @@ uv sync --no-dev
 
 ### Step 4 — Create the database
 
-The tool needs its own MySQL database on Toolforge. Request one at [Toolsadmin → Databases](https://toolsadmin.wikimedia.org/tools/tool/wall-of-faces) (you may need to be logged in as your personal account, not the tool account).
+The tool needs its own MySQL database on Toolforge. Request one at [Toolsadmin → Databases](https://toolsadmin.wikimedia.org/tools/tool/profile-creator-nlwiki) (you may need to be logged in as your personal account, not the tool account).
 
 Once created, Toolforge provides a credential file at `~/replica.my.cnf`. Find your database name and credentials there:
 
@@ -277,7 +277,7 @@ chmod 700 ~/snapshots
 
 ### Step 6 — Store secrets
 
-The app reads secrets from files under `/run/secrets/wall-of-faces/`. On Toolforge Kubernetes, you store these as [tool secrets](https://wikitech.wikimedia.org/wiki/Help:Toolforge/Kubernetes/Secrets) using the `toolforge` CLI.
+The app reads secrets from files under `/run/secrets/profile-creator-nlwiki/`. On Toolforge Kubernetes, you store these as [tool secrets](https://wikitech.wikimedia.org/wiki/Help:Toolforge/Kubernetes/Secrets) using the `toolforge` CLI.
 
 First, generate a random secret key for Flask session signing:
 
@@ -294,7 +294,7 @@ toolforge secrets create secret-key --from-literal=value="paste_your_64char_hex_
 toolforge secrets create database-url --from-literal=value="mysql+pymysql://s12345:password@tools.db.svc.wikimedia.cloud/s12345__wall_of_faces"
 toolforge secrets create oauth-client-id --from-literal=value="your_client_id"
 toolforge secrets create oauth-client-secret --from-literal=value="your_client_secret"
-toolforge secrets create oauth-redirect-uri --from-literal=value="https://wall-of-faces.toolforge.org/oauth-callback"
+toolforge secrets create oauth-redirect-uri --from-literal=value="https://profile-creator-nlwiki.toolforge.org/oauth-callback"
 toolforge secrets create mistral-api-key --from-literal=value="your_mistral_api_key"
 ```
 
@@ -319,15 +319,15 @@ HOME_WIKI_LABEL        = "nl.wikipedia.org · Wikimedia Nederland"  # shown on t
 EVENT_NAME             = "Wall of Faces 2026"   # shown on the card footer
 EVENT_COMMONS_CATEGORY = "Wikimedia_Event_2026" # Commons category for event photos
 SUBMISSION_DEADLINE    = "2026-05-01"           # informational; shown to users
-ADMIN_USERS            = ["YourWikimediaUsername"]  # who can access /admin
+ADMIN_USERS            = ["Effeietsanders"]  # who can access /admin
 ```
 
 Set `ADMIN_USERS` to your own Wikimedia username so you can access the admin panel after deployment.
 
-The snapshot directory defaults to `/data/project/wall-of-faces/snapshots` but can be overridden via the `SNAPSHOT_ROOT` environment variable. The simplest approach on Toolforge is to set it to the directory you created in step 5:
+The snapshot directory defaults to `/data/project/profile-creator-nlwiki/snapshots` but can be overridden via the `SNAPSHOT_ROOT` environment variable. The simplest approach on Toolforge is to set it to the directory you created in step 5:
 
 ```bash
-export SNAPSHOT_ROOT=/data/tool-wall-of-faces/snapshots
+export SNAPSHOT_ROOT=/data/tool-profile-creator-nlwiki/snapshots
 ```
 
 Or add it to `~/wall-of-faces/.env` if you prefer to keep it in the project.
@@ -338,7 +338,7 @@ For a fresh deployment, use `db stamp head`. Flask-Session creates all tables au
 
 ```bash
 cd ~/wall-of-faces
-SNAPSHOT_ROOT=/data/tool-wall-of-faces/snapshots \
+SNAPSHOT_ROOT=/data/tool-profile-creator-nlwiki/snapshots \
 uv run flask --app wsgi:application db stamp head
 ```
 
@@ -367,10 +367,10 @@ webservice --backend=kubernetes python3.11 status
 
 Open these URLs in your browser:
 
-- **Health check:** `https://wall-of-faces.toolforge.org/healthz` — should return `{"ok": true}`
-- **Home page:** `https://wall-of-faces.toolforge.org/`
-- **Login:** `https://wall-of-faces.toolforge.org/login` — redirects to Wikimedia OAuth
-- **Admin panel:** `https://wall-of-faces.toolforge.org/admin` — only accessible with your username
+- **Health check:** `https://profile-creator-nlwiki.toolforge.org/healthz` — should return `{"ok": true}`
+- **Home page:** `https://profile-creator-nlwiki.toolforge.org/`
+- **Login:** `https://profile-creator-nlwiki.toolforge.org/login` — redirects to Wikimedia OAuth
+- **Admin panel:** `https://profile-creator-nlwiki.toolforge.org/admin` — only accessible with your username
 
 If the health check fails, check the logs:
 
@@ -385,7 +385,7 @@ webservice --backend=kubernetes python3.11 logs
 When you push new code, update the deployment like this:
 
 ```bash
-become wall-of-faces
+become profile-creator-nlwiki
 cd ~/wall-of-faces
 
 # Pull the latest code
