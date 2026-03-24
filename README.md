@@ -358,11 +358,12 @@ If you see an error about the database connection, double-check the `database-ur
 
 ### Step 9 — Start the webservice
 
-First, create the symlink that Toolforge's webservice wrapper expects:
+First, create the symlink that Toolforge's webservice wrapper expects, and make sure dependencies are installed:
 
 ```bash
 mkdir -p ~/www/python
 ln -s ~/wall-of-faces ~/www/python/src
+cd ~/wall-of-faces && uv sync --no-dev
 ```
 
 Then start the webservice from the home directory:
