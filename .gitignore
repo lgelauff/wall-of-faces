@@ -64,6 +64,8 @@ db.sqlite3-journal
 # Flask stuff:
 instance/
 .webassets-cache
+dev.db
+dev.db-journal
 
 # Scrapy stuff:
 .scrapy
@@ -181,12 +183,9 @@ cython_debug/
 # Learn more at https://abstra.io/docs
 .abstra/
 
-# Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
-#  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
-#  you could uncomment the following to ignore the entire vscode folder
-# .vscode/
+# Visual Studio Code — commit only project-relevant settings, ignore the rest
+.vscode/*
+!.vscode/settings.json
 
 # Ruff stuff:
 .ruff_cache/
@@ -205,3 +204,15 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Claude Code
+.claude/
+
+# Temp files
+tmp/
+
+# Working notes
+notes.txt
+
+# macOS
+.DS_Store

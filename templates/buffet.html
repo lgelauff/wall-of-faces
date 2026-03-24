@@ -1,0 +1,407 @@
+{#
+  buffet.html — discovery buffet where users build their card from suggestions.
+
+  Tabs (in order):
+    1. Explanation  — static card anatomy; no data entry
+    2. Infobox      — profile picture, home base, home wiki, userboxes
+    3. Content      — lead text, content images, extra sections
+    4. Accomplishments — barnstars, badges, proud of
+
+  Context from app.py buffet():
+    profile          — UserProfile ORM object (current saved state)
+    avatars_cache    — list[{filename}]              from GatherCache
+    userboxes_cache  — list[{icon, label}]           from GatherCache
+    barnstars_cache  — list[{filename, name}]        from GatherCache
+    badges_cache     — list[{id, name, icon, color_class}] from GatherCache
+    proud_of_cache   — list[{title, type}]           from GatherCache (LLM)
+
+  All saves go to POST /api/save-profile.
+  Images are resolved on demand via GET /api/resolve-image?filename=&width=.
+#}
+{% extends "base.html" %}
+{% block title %}{{ t('buffet.title') }}{% endblock %}
+
+{% block head_extra %}
+  <script src="{{ url_for('static', filename='js/buffet.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <h1 class="page__title">{{ t('buffet.title') }}</h1>
+
+  {# Tab navigation #}
+  <div class="buffet-tabs" role="tablist">
+    <button class="buffet-tab is-active" role="tab" data-panel="panel-explanation">
+      {{ t('buffet.explanation') }}
+    </button>
+    <button class="buffet-tab" role="tab" data-panel="panel-infobox">
+      {{ t('buffet.infobox') }}
+    </button>
+    <button class="buffet-tab" role="tab" data-panel="panel-content">
+      {{ t('buffet.content') }}
+    </button>
+    <button class="buffet-tab" role="tab" data-panel="panel-accomplishments">
+      {{ t('buffet.accomplishments') }}
+    </button>
+  </div>
+
+  {# ── EXPLANATION PANEL ────────────────────────────────────────────────────── #}
+  <div class="buffet-panel is-active" id="panel-explanation">
+
+    <p style="margin-bottom:1.25rem">{{ t('buffet.explanation_intro') }}</p>
+
+    {# Card layout schematic #}
+    <div class="card-schematic">
+      <div class="cs-title-bar">Gebruikersnaam</div>
+      <div class="cs-body">
+        <div class="cs-main">
+          <div class="cs-area cs-area--content">
+            <span class="cs-area__num">②</span>
+            <span class="cs-area__label">{{ t('buffet.explanation_content_title') }}</span>
+          </div>
+        </div>
+        <div class="cs-infobox">
+          <span class="cs-area__num">①</span>
+          <span class="cs-area__label">{{ t('buffet.explanation_infobox_title') }}</span>
+        </div>
+      </div>
+      <div class="cs-accomplishments">
+        <span class="cs-area__num">③</span>
+        <span class="cs-area__label">{{ t('buffet.explanation_accomplishments_title') }}</span>
+      </div>
+      <div class="cs-footer-bar"></div>
+    </div>
+
+    <div class="explanation-grid" style="margin-top:1.5rem">
+
+      <div class="explanation-card">
+        <div class="explanation-card__icon">①</div>
+        <div class="explanation-card__title">{{ t('buffet.explanation_infobox_title') }}</div>
+        <div class="explanation-card__body">{{ t('buffet.explanation_infobox_body') }}</div>
+      </div>
+
+      <div class="explanation-card">
+        <div class="explanation-card__icon">②</div>
+        <div class="explanation-card__title">{{ t('buffet.explanation_content_title') }}</div>
+        <div class="explanation-card__body">{{ t('buffet.explanation_content_body') }}</div>
+      </div>
+
+      <div class="explanation-card">
+        <div class="explanation-card__icon">③</div>
+        <div class="explanation-card__title">{{ t('buffet.explanation_accomplishments_title') }}</div>
+        <div class="explanation-card__body">{{ t('buffet.explanation_accomplishments_body') }}</div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:1.5rem;text-align:right;padding-bottom:0.5rem">
+      <button class="btn btn--secondary" data-goto-panel="panel-infobox">
+        {{ t('buffet.infobox') }} →
+      </button>
+    </div>
+
+  </div>
+  {# /panel-explanation #}
+
+  {# ── INFOBOX PANEL ────────────────────────────────────────────────────────── #}
+  <div class="buffet-panel" id="panel-infobox">
+
+    {# Profile picture #}
+    <div class="buffet-section">
+      <div class="buffet-section__title">{{ t('buffet.profile_picture') }}</div>
+      {% if avatars_cache %}
+        <div class="avatar-grid" id="avatar-grid">
+          {% for item in avatars_cache %}
+            <img class="avatar-option{% if profile.avatar_filename == item.filename %} is-selected{% endif %}"
+                 data-filename="{{ item.filename }}"
+                 src=""
+                 alt="{{ item.filename }}"
+                 title="{{ item.filename }}">
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
+      {% endif %}
+      <div class="field-row" style="margin-top:0.5rem">
+        <label for="input-avatar-manual">{{ t('buffet.profile_picture_manual') }}</label>
+        <input id="input-avatar-manual"
+               type="text"
+               placeholder="Voorbeeld.jpg"
+               value="{{ profile.avatar_filename or '' }}"
+               data-field="avatar_filename">
+      </div>
+    </div>
+
+    {# Home base + Home wiki #}
+    <div class="buffet-section">
+      <div class="buffet-section__title">{{ t('buffet.infobox') }}</div>
+      <div class="field-row">
+        <label for="input-home-base">{{ t('card.home_base') }}</label>
+        <input id="input-home-base"
+               type="text"
+               maxlength="100"
+               placeholder="{{ t('buffet.home_base_hint') }}"
+               value="{{ profile.home_base or '' }}"
+               data-field="home_base">
+      </div>
+      <div class="field-row" style="margin-top:0.5rem">
+        <label for="input-home-wiki">{{ t('card.home_wiki') }}</label>
+        <div style="flex:1">
+          <input id="input-home-wiki"
+                 type="text"
+                 maxlength="50"
+                 placeholder="{{ t('buffet.home_wiki_placeholder') }}"
+                 value="{{ profile_home_wiki }}"
+                 data-field="home_wiki">
+          {% if profile_home_wiki_url %}
+            <div class="field-hint">{{ profile_home_wiki_url }}</div>
+          {% endif %}
+        </div>
+      </div>
+      <p class="field-description">{{ t('buffet.home_wiki_hint') }}</p>
+    </div>
+
+    {# Userboxes #}
+    <div class="buffet-section">
+      <div class="buffet-section__title">Userboxes</div>
+      {% if userboxes_cache %}
+        <div id="userboxes-list">
+          {% set current_userboxes = profile.userboxes | from_json([]) %}
+          {% for item in userboxes_cache %}
+            {% set is_accepted = current_userboxes | selectattr('label', 'equalto', item.label) | list | length > 0 %}
+            <div class="buffet-item{% if is_accepted %} is-accepted{% endif %}"
+                 data-type="userbox"
+                 data-payload="{{ item | tojson }}">
+              <div class="buffet-item__body">
+                <div class="buffet-item__label">
+                  {% if item.icon %}<b>{{ item.icon }}</b> {% endif %}{{ item.label }}
+                </div>
+              </div>
+              <div class="buffet-item__actions">
+                <button class="btn btn--small {% if is_accepted %}btn--secondary{% else %}btn--primary{% endif %}"
+                        data-action="toggle-userbox">
+                  {{ t('buffet.accept') if not is_accepted else t('buffet.reject') }}
+                </button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
+      {% endif %}
+    </div>
+
+  </div>
+  {# /panel-infobox #}
+
+  {# ── CONTENT PANEL ────────────────────────────────────────────────────────── #}
+  <div class="buffet-panel" id="panel-content">
+
+    {# Lead text (biography) #}
+    <div class="buffet-section">
+      <div class="buffet-section__title">{{ t('buffet.content') }}</div>
+      <div class="field-row">
+        <label for="input-biography">Tekst</label>
+        <textarea id="input-biography"
+                  rows="5"
+                  maxlength="2000"
+                  data-field="biography">{{ profile.biography or '' }}</textarea>
+      </div>
+    </div>
+
+    {# Content images — multi-select from avatar pool #}
+    <div class="buffet-section">
+      <div class="buffet-section__title">{{ t('buffet.content_images') }}</div>
+      {% if avatars_cache %}
+        <p class="field-description">{{ t('buffet.content_images_hint') }}</p>
+        {% set current_content_images = profile.content_image_filenames | from_json([]) %}
+        <div class="avatar-grid" id="content-images-grid">
+          {% for item in avatars_cache %}
+            {% set is_selected = item.filename in current_content_images %}
+            <img class="avatar-option content-image-option{% if is_selected %} is-selected{% endif %}"
+                 data-filename="{{ item.filename }}"
+                 src=""
+                 alt="{{ item.filename }}"
+                 title="{{ item.filename }}">
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
+      {% endif %}
+    </div>
+
+    {# Extra sections — inline form #}
+    <div class="buffet-section">
+      <div class="buffet-section__title">Extra rubrieken</div>
+      <div id="extra-sections-list">
+        {% set extra = profile.extra_sections | from_json([]) %}
+        {% for sec in extra %}
+          <div class="buffet-item" data-type="extra-section"
+               data-section-title="{{ sec.title }}"
+               data-section-text="{{ sec.text }}">
+            <div class="buffet-item__body">
+              <div class="buffet-item__label">{{ sec.title }}</div>
+              <div class="buffet-item__meta">{{ sec.text | truncate(80) }}</div>
+            </div>
+            <div class="buffet-item__actions">
+              <button class="btn btn--small btn--secondary" data-action="remove-section">
+                {{ t('buffet.reject') }}
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      {# Inline add-section form — replaces prompt() dialogs #}
+      <div class="add-section-form" style="margin-top:0.75rem">
+        <div class="field-row">
+          <label for="input-section-title">Sectietitel</label>
+          <input id="input-section-title"
+                 type="text"
+                 maxlength="100"
+                 placeholder="{{ t('buffet.add_section_title_placeholder') }}">
+        </div>
+        <div class="field-row" style="margin-top:0.4rem">
+          <label for="input-section-text">Sectietekst</label>
+          <textarea id="input-section-text"
+                    rows="3"
+                    maxlength="500"
+                    placeholder="{{ t('buffet.add_section_text_placeholder') }}"></textarea>
+        </div>
+        <div style="margin-top:0.5rem;text-align:right">
+          <button class="btn btn--secondary btn--small" id="btn-add-section">
+            {{ t('buffet.add_section_btn') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {# /panel-content #}
+
+  {# ── ACCOMPLISHMENTS PANEL ────────────────────────────────────────────────── #}
+  <div class="buffet-panel" id="panel-accomplishments">
+
+    {# Barnstars #}
+    <div class="buffet-section">
+      <div class="buffet-section__title">Barnstars</div>
+      {% if barnstars_cache %}
+        <div id="barnstars-list">
+          {% set current_barnstars = profile.barnstars | from_json([]) %}
+          {% for item in barnstars_cache %}
+            {% set is_accepted = current_barnstars | selectattr('filename', 'equalto', item.filename) | list | length > 0 %}
+            <div class="buffet-item{% if is_accepted %} is-accepted{% endif %}"
+                 data-type="barnstar"
+                 data-payload="{{ item | tojson }}">
+              <img class="buffet-item__thumb" src="" alt="{{ item.name }}" data-filename="{{ item.filename }}">
+              <div class="buffet-item__body">
+                <div class="buffet-item__label">{{ item.name }}</div>
+                <div class="buffet-item__meta">{{ item.filename }}</div>
+              </div>
+              <div class="buffet-item__actions">
+                <button class="btn btn--small {% if is_accepted %}btn--secondary{% else %}btn--primary{% endif %}"
+                        data-action="toggle-barnstar">
+                  {{ t('buffet.accept') if not is_accepted else t('buffet.reject') }}
+                </button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
+      {% endif %}
+    </div>
+
+    {# Achievement badges #}
+    <div class="buffet-section">
+      <div class="buffet-section__title">Prestatiemedailles</div>
+      {% if badges_cache %}
+        <div id="badges-list">
+          {% set selected_ids = profile.selected_achievements | from_json([]) %}
+          {% for item in badges_cache %}
+            {% set is_accepted = item.id in selected_ids %}
+            <div class="buffet-item{% if is_accepted %} is-accepted{% endif %}"
+                 data-type="badge"
+                 data-badge-id="{{ item.id }}"
+                 data-payload="{{ item | tojson }}">
+              <div class="buffet-item__body">
+                <div class="buffet-item__label">{{ item.icon }} {{ item.name }}</div>
+              </div>
+              <div class="buffet-item__actions">
+                <button class="btn btn--small {% if is_accepted %}btn--secondary{% else %}btn--primary{% endif %}"
+                        data-action="toggle-badge">
+                  {{ t('buffet.accept') if not is_accepted else t('buffet.reject') }}
+                </button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
+      {% endif %}
+    </div>
+
+    {# Proud of — LLM suggestions + manual input #}
+    <div class="buffet-section">
+      <div class="buffet-section__title">{{ t('card.proud_of') }}</div>
+      {% if proud_of_cache %}
+        <p style="font-size:0.85rem;color:#54595d;margin-bottom:0.5rem">
+          {{ t('buffet.proud_of_input') }}
+        </p>
+        <div id="proud-of-list">
+          {% set current_proud = profile.proud_of | from_json([]) %}
+          {% for item in proud_of_cache %}
+            {% set is_accepted = current_proud | selectattr('title', 'equalto', item.title) | list | length > 0 %}
+            <div class="buffet-item{% if is_accepted %} is-accepted{% endif %}"
+                 data-type="proud-of"
+                 data-payload="{{ item | tojson }}">
+              <div class="buffet-item__body">
+                <div class="buffet-item__label">{{ item.title }}</div>
+                <div class="buffet-item__meta">{{ item.type }}</div>
+              </div>
+              <div class="buffet-item__actions">
+                <button class="btn btn--small {% if is_accepted %}btn--secondary{% else %}btn--primary{% endif %}"
+                        data-action="toggle-proud-of">
+                  {{ t('buffet.accept') if not is_accepted else t('buffet.reject') }}
+                </button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {# Manual proud-of entry #}
+      <div class="field-row" style="margin-top:0.75rem">
+        <input id="input-proud-of-wiki"
+               type="text"
+               placeholder="{{ t('buffet.proud_of_wiki_placeholder') }}"
+               style="width:110px;flex:none"
+               value="{{ config_home_wiki }}"
+               data-home-wiki="{{ config_home_wiki }}">
+        <input id="input-proud-of-title"
+               type="text"
+               placeholder="{{ t('buffet.proud_of_placeholder') }}"
+               style="flex:1">
+        <button class="btn btn--secondary btn--small" id="btn-add-proud-of">+</button>
+      </div>
+    </div>
+
+  </div>
+  {# /panel-accomplishments #}
+
+  {# Bottom nav #}
+  <div style="display:flex;justify-content:flex-end;gap:0.75rem;margin-top:2.5rem;padding-top:1rem;border-top:1px solid #eaecf0">
+    <a class="btn btn--secondary" href="{{ url_for('gather') }}">← {{ t('nav.back') }}</a>
+    <a class="btn btn--primary"   href="{{ url_for('card') }}">{{ t('nav.finalize') }} →</a>
+  </div>
+
+</div>
+
+{# Embedded i18n for buffet.js #}
+<script id="buffet-i18n" type="application/json">
+{
+  "accept": {{ t('buffet.accept') | tojson }},
+  "reject": {{ t('buffet.reject') | tojson }}
+}
+</script>
+{% endblock %}

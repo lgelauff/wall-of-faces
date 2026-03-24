@@ -1,0 +1,117 @@
+# strings/nl.yml — Dutch UI strings
+# Default language for this deployment (UI_LANGUAGE = "nl")
+
+# ── Navigation ──────────────────────────────────────────────────
+nav.logout: Uitloggen
+nav.delete_data: Gegevens wissen
+nav.back: Terug
+nav.save: Opslaan
+nav.finalize: Finaliseer kaart
+
+# ── Landing page ────────────────────────────────────────────────
+index.title: Wall of Faces
+index.subtitle: Maak je persoonlijke kaart voor het evenement.
+index.login: Inloggen met Wikipedia
+
+# ── Gather screen ───────────────────────────────────────────────
+gather.title: Gegevens ophalen
+gather.progress: Gegevens ophalen…
+gather.done: Klaar! Je kaart staat voor je.
+gather.error: "Er is iets misgegaan: {message}"
+gather.queue_position: "Je staat op positie {n} in de wachtrij."
+gather.queue_position_many: "Je staat op positie 5 of later in de wachtrij."
+gather.llm_consent_title: "Wil je AI-suggesties?"
+gather.llm_consent_body: >
+  We kunnen je gebruikerspagina analyseren met Mistral AI (EU-servers) om
+  extra suggesties te genereren voor je kaart, zoals interesses en taalvaardigheden.
+  Je wikitekst (max. 50 000 tekens per wiki) wordt voor dit doel naar Mistral gestuurd.
+  Je kunt deze toestemming later intrekken via je kaartinstellingen.
+gather.llm_consent_yes: "Ja, gebruik AI-analyse"
+gather.llm_consent_no: "Nee, sla AI-analyse over"
+gather.start: Gegevens ophalen
+
+# ── Buffet screen ───────────────────────────────────────────────
+buffet.title: Stel je kaart samen
+buffet.explanation: Uitleg
+buffet.infobox: Infobox
+buffet.content: Inhoud
+buffet.accomplishments: Prestaties
+buffet.accept: Accepteer
+buffet.reject: Verwijder
+buffet.no_suggestions: Geen suggesties gevonden voor dit onderdeel.
+buffet.proud_of_input: "Welke artikelen, afbeeldingen of bijdragen ben je trots op?"
+buffet.proud_of_placeholder: "Naam van artikel of afbeelding"
+buffet.proud_of_wiki_placeholder: "wiki (bijv. enwiki)"
+buffet.home_base_hint: "Stad of regio waar je woont"
+buffet.home_wiki_hint: "Je meest actieve wiki — bepaalt hoe je naam op de kaart verschijnt"
+buffet.home_wiki_placeholder: "bijv. nlwiki, enwiki"
+buffet.profile_picture: Profielfoto
+buffet.profile_picture_manual: "Of voer een bestandsnaam handmatig in:"
+buffet.content_images: Afbeeldingen
+buffet.content_images_hint: "Selecteer afbeeldingen voor het inhoudsgedeelte (max. 3)."
+buffet.add_section_title_placeholder: "Sectietitel (max. 100 tekens)"
+buffet.add_section_text_placeholder: "Sectietekst (max. 500 tekens)"
+buffet.add_section_btn: "+ Rubriek toevoegen"
+buffet.explanation_intro: >
+  Je kaart heeft drie gebieden. Gebruik de tabbladen hierboven om ze in te vullen.
+buffet.explanation_infobox_title: "Infobox (rechts)"
+buffet.explanation_infobox_body: >
+  Profielfoto, woonplaats, bewerkingsaantal, rechten en userboxes.
+  Deze informatie staat in de kolom rechts op de kaart.
+buffet.explanation_content_title: "Inhoud (midden)"
+buffet.explanation_content_body: >
+  Een korte biografie (~50–80 woorden), optionele afbeeldingen en extra rubrieken (~30–50 woorden elk).
+  Één of twee extra rubrieken passen comfortabel op de kaart.
+buffet.explanation_accomplishments_title: "Prestaties (onderaan)"
+buffet.explanation_accomplishments_body: >
+  Artikelen of bestanden waar je trots op bent, ontvangen barnstars
+  en prestatiemedailles op basis van je bewerkingsgeschiedenis.
+
+# ── Card preview ────────────────────────────────────────────────
+card.preview_title: Kaartvoorbeeld
+card.preview_label: "Wall of Faces · Kaartvoorbeeld · A5"
+card.overflow_warning: "⚠ Je kaart is te vol — verwijder of verkort inhoud totdat alles past."
+card.finalized_notice: "Je kaart is gefinaliseerd op {date}."
+card.processed_notice: "Je kaart is gedownload voor verwerking. Latere wijzigingen worden mogelijk niet afgedrukt."
+
+# ── Card content strings (used in card_content.html and PDF) ────
+card.user_prefix: Gebruiker
+card.member_since: Actief sinds
+card.home_base: Woonplaats
+card.home_wiki: Thuiswiki
+card.edit_count: Bewerkingen
+card.rights: Rechten
+card.proud_of: Trots op
+card.achievements: Prestaties
+card.biography_image_alt: Biografie afbeelding
+card.no_image: geen afbeelding
+
+# ── Finalize / snapshot ─────────────────────────────────────────
+finalize.confirm_title: Kaart opslaan
+finalize.confirm_body: "Je hebt het maximum van {limit} opgeslagen versies bereikt. Als je doorgaat, worden alle oudere versies verwijderd. Je huidige laatste versie blijft bewaard."
+finalize.confirm_ok: Doorgaan en oudere versies verwijderen
+finalize.confirm_cancel: Annuleren
+finalize.overflow_error: "Je kaart is te vol — pas de inhoud aan en probeer het opnieuw."
+finalize.too_soon: "Wacht nog {seconds} seconden voor je opnieuw kunt opslaan."
+
+# ── Account ─────────────────────────────────────────────────────
+account.reset_title: Opnieuw beginnen
+account.reset_body: "Hiermee verwijder je al je verzamelde gegevens en kaartversies zodat je opnieuw kunt beginnen. Je account blijft bestaan."
+account.delete_title: Account verwijderen
+account.delete_body: "Hiermee verwijder je je account volledig inclusief alle gegevens en PDF-versies. Je moet opnieuw inloggen om een nieuw account aan te maken. Dit kan niet ongedaan worden gemaakt."
+
+# ── Admin ───────────────────────────────────────────────────────
+admin.title: Beheer
+admin.export_zip: Exporteer als ZIP
+admin.export_merged: Exporteer als samengevoegd PDF
+admin.snapshot_all: Snapshot maken van alle kaarten
+admin.storage_warning: "⚠ Schijfruimte: {gb:.1f} GB gebruikt (limiet {limit} GB)"
+admin.no_profiles: Nog geen profielen.
+
+# ── Privacy ─────────────────────────────────────────────────────
+privacy.title: Privacyverklaring
+
+# ── Errors ──────────────────────────────────────────────────────
+error.not_found: Pagina niet gevonden.
+error.forbidden: Toegang geweigerd.
+error.server: Er is een serverfout opgetreden.

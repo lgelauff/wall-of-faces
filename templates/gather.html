@@ -1,0 +1,59 @@
+{#
+  gather.html — gather progress screen with LLM consent UI.
+
+  All state is fetched and managed via JS:
+    GET  /api/gather-status  → {status, progress, queue_position, error_message}
+    POST /api/gather         → {llm_consent: bool}
+#}
+{% extends "base.html" %}
+{% block title %}{{ t('gather.title') }}{% endblock %}
+
+{% block head_extra %}
+  <script src="{{ url_for('static', filename='js/gather.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="gather-card">
+  <h1 class="gather-card__title">{{ t('gather.title') }}</h1>
+
+  {# LLM consent — shown only when status is idle and consent not yet given #}
+  <div id="consent-box" class="consent-box" hidden>
+    <div class="consent-box__title">{{ t('gather.llm_consent_title') }}</div>
+    <div class="consent-box__body">{{ t('gather.llm_consent_body') }}</div>
+    <div class="consent-actions">
+      <button class="btn btn--primary"   id="btn-consent-yes">{{ t('gather.llm_consent_yes') }}</button>
+      <button class="btn btn--secondary" id="btn-consent-no">{{ t('gather.llm_consent_no') }}</button>
+    </div>
+  </div>
+
+  {# Start button — shown when idle and consent already given #}
+  <div id="start-box" hidden>
+    <button class="btn btn--primary" id="btn-start">{{ t('gather.start') }}</button>
+  </div>
+
+  {# Progress — shown while queued or running #}
+  <div id="progress-box" hidden>
+    <p id="progress-label" class="gather-status-line">{{ t('gather.progress') }}</p>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  {# Status line (queue position, error) #}
+  <p class="gather-status-line" id="status-line"></p>
+</div>
+
+{#
+  Embedded translation strings for gather.js.
+  Avoids hard-coding Dutch in JS while keeping the script src CSP-safe.
+#}
+<script id="gather-i18n" type="application/json">
+{
+  "progress":           {{ t('gather.progress')           | tojson }},
+  "done":               {{ t('gather.done')               | tojson }},
+  "queue_position":     {{ t('gather.queue_position')     | tojson }},
+  "queue_position_many":{{ t('gather.queue_position_many')| tojson }},
+  "error":              {{ t('gather.error')              | tojson }}
+}
+</script>
+{% endblock %}

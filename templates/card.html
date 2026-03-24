@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ t('card.preview_title') }}{% endblock %}
+
+{% block head_extra %}
+  {# Card theme — swappable; controlled by CARD_THEME config param #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/card-theme-' ~ card_theme ~ '.css') }}">
+  <script src="{{ url_for('static', filename='js/finalize.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="card-page-chrome">
+  <p class="preview-label">{{ t('card.preview_label') }}</p>
+
+  <div class="overflow-warning" id="overflow-warning" role="alert">
+    {{ t('card.overflow_warning') }}
+  </div>
+
+  {% include "card_content.html" %}
+
+  <div class="finalize-bar">
+    <span class="finalize-notice" id="finalize-notice">
+      {% if profile.processed_at %}
+        {{ t('card.processed_notice') }}
+      {% elif profile.snapshot_at %}
+        {{ t('card.finalized_notice', date=profile.snapshot_at.strftime('%d-%m-%Y')) }}
+      {% endif %}
+    </span>
+    <a class="btn btn--secondary" href="{{ url_for('buffet') }}">← {{ t('nav.back') }}</a>
+    <button class="btn btn--primary" id="btn-finalize">{{ t('nav.finalize') }} →</button>
+  </div>
+</div>
+
+{# Confirm-prune dialog — shown when snapshot version cap is reached #}
+<div class="dialog-backdrop" id="prune-dialog" role="dialog" aria-modal="true">
+  <div class="dialog">
+    <h2 class="dialog__title">{{ t('finalize.confirm_title') }}</h2>
+    <p class="dialog__body" id="prune-dialog-body"></p>
+    <div class="dialog__actions">
+      <button class="btn btn--secondary" id="btn-prune-cancel">{{ t('finalize.confirm_cancel') }}</button>
+      <button class="btn btn--danger"    id="btn-prune-ok">{{ t('finalize.confirm_ok') }}</button>
+    </div>
+  </div>
+</div>
+
+{# Embedded i18n strings for finalize.js #}
+<script id="finalize-i18n" type="application/json">
+{
+  "overflow_error": {{ t('finalize.overflow_error') | tojson }},
+  "too_soon":       {{ t('finalize.too_soon')       | tojson }}
+}
+</script>
+
+{# Current snapshot metadata for finalize.js #}
+<script id="finalize-meta" type="application/json">
+{
+  "snapshot_version": {{ (profile.snapshot_version or '') | tojson }}
+}
+</script>
+{% endblock %}

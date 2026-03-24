@@ -1,0 +1,223 @@
+{#
+  card_content.html — THE card template.
+  Pure semantic content; no inline styles. All visual decisions live in the CSS theme file.
+
+  Used by:
+    - card.html (browser preview, wrapped in page chrome)
+    - src/render.py → render_card_html() → WeasyPrint PDF
+
+  Context variables (all optional — template degrades gracefully):
+    profile.username            str
+    profile.avatar_url          str|None   — absolute URL to downloaded avatar image
+    profile.home_base           str|None
+    profile.registration_date   str|None   — formatted, e.g. "14 maart 2012"
+    profile.edit_count          int|None
+    profile.user_rights         list[str]  — e.g. ["Beheerder", "CheckUser"]
+    profile.userboxes           list[{left_text, left_bg, left_color, right_text}]
+    profile.biography           str|None
+    profile.biography_image_url str|None   — absolute URL (legacy single bio image)
+    profile.content_image_urls  list[str]  — absolute URLs for content images (max 3)
+    profile.extra_sections      list[{title, text}]
+    profile.proud_of            list[{title, image_url}]   — image_url may be None
+    profile.barnstars           list[{name, image_url, gradient}]  — gradient fallback CSS string
+    profile.achievements        list[{name, icon, color_class}]    — color_class: green/blue/purple/amber/red
+    profile.signature_html      str|None   — pre-sanitised HTML
+    strings                     dict       — UI strings from strings/<lang>.yml
+    event_name                  str        — e.g. "Wall of Faces 2026"
+    home_wiki_label             str        — e.g. "nl.wikipedia.org · Wikimedia Nederland"
+#}
+
+<div class="card">
+
+  {# ── BODY ──────────────────────────────────────────────────── #}
+  <div class="card-body">
+
+    {# Title block #}
+    <div class="card-title-block">
+      <div class="card-title">{{ profile.username }}</div>
+      <hr class="title-rule">
+    </div>
+
+    {# Main content: infobox floats right, text flows left #}
+    <div class="card-content clearfix">
+
+      {# ── INFOBOX ──────────────────────────────────────────── #}
+      <div class="infobox">
+        <div class="infobox-header">{{ profile.infobox_user_header }}</div>
+
+        {# Avatar #}
+        <div class="infobox-image">
+          {% if profile.avatar_url %}
+            <img src="{{ profile.avatar_url }}" alt="{{ profile.username }}">
+          {% else %}
+            <div class="avatar-placeholder">
+              {# Inline SVG so it renders in WeasyPrint without external fetch #}
+              <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="40" cy="28" r="18" fill="currentColor"/>
+                <path d="M8 72c0-18 14-30 32-30s32 12 32 30" fill="currentColor"/>
+              </svg>
+            </div>
+          {% endif %}
+        </div>
+
+        {# Stats table #}
+        <table class="infobox-table">
+          {% if profile.registration_date %}
+          <tr>
+            <td>{{ strings.member_since }}</td>
+            <td>{{ profile.registration_date }}</td>
+          </tr>
+          {% endif %}
+          {% if profile.home_base %}
+          <tr>
+            <td>{{ strings.home_base }}</td>
+            <td>{{ profile.home_base }}</td>
+          </tr>
+          {% endif %}
+          {% if profile.edit_count is not none %}
+          <tr>
+            <td>{{ strings.edit_count }}</td>
+            <td>{{ "{:,}".format(profile.edit_count).replace(",", "\u00a0") }}</td>
+          </tr>
+          {% endif %}
+          {% if profile.user_rights %}
+          <tr>
+            <td>{{ strings.rights }}</td>
+            <td>
+              <div class="permission-chips">
+                {% for right in profile.user_rights %}
+                  <span class="permission-chip">{{ right }}</span>
+                {% endfor %}
+              </div>
+            </td>
+          </tr>
+          {% endif %}
+        </table>
+
+        {# Userboxes #}
+        {% if profile.userboxes %}
+        <div class="userboxes-section">
+          {% for ub in profile.userboxes %}
+          <div class="userbox">
+            <div class="userbox-left"
+                 {% if ub.left_bg or ub.left_color %}
+                 style="{% if ub.left_bg %}background:{{ ub.left_bg }};{% endif %}{% if ub.left_color %}color:{{ ub.left_color }};{% endif %}"
+                 {% endif %}>{{ ub.left_text }}</div>
+            <div class="userbox-right">{{ ub.right_text }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div>
+      {# /infobox #}
+
+      {# ── LEAD TEXT (biography) ────────────────────────────── #}
+      {% if profile.biography %}
+      <div class="lead-text">
+        <b>{{ profile.username }}</b>
+        {{ profile.biography }}
+      </div>
+      {% endif %}
+
+      {# ── CONTENT IMAGES + EXTRA SECTIONS ─────────────────── #}
+      {% if profile.content_image_urls or profile.biography_image_url or profile.extra_sections %}
+      <div class="extra-sections clearfix">
+
+        {% if profile.content_image_urls %}
+          <div class="content-images">
+            {% for url in profile.content_image_urls %}
+              <img class="content-image" src="{{ url }}" alt="">
+            {% endfor %}
+          </div>
+        {% elif profile.biography_image_url %}
+          {# legacy fallback for old snapshots #}
+          <img class="bio-image"
+               src="{{ profile.biography_image_url }}"
+               alt="{{ strings.biography_image_alt }}">
+        {% endif %}
+
+        {% for section in profile.extra_sections %}
+        <div class="extra-section">
+          <div class="extra-section-title">{{ section.title }}</div>
+          <div class="extra-section-text">{{ section.text }}</div>
+        </div>
+        {% endfor %}
+
+      </div>
+      {% endif %}
+
+    </div>
+    {# /card-content #}
+
+  </div>
+  {# /card-body #}
+
+  {# ── TROTS OP BAR ─────────────────────────────────────────── #}
+  {% if profile.proud_of %}
+  <hr class="section-rule">
+  <div class="trots-bar">
+    <div class="bar-label">{{ strings.proud_of }}</div>
+    <div class="trots-items">
+      {% for item in profile.proud_of %}
+      <div class="trots-item">
+        {% if item.image_url %}
+          <img class="trots-thumb" src="{{ item.image_url }}" alt="">
+        {% else %}
+          <div class="trots-thumb-placeholder">{{ strings.no_image }}</div>
+        {% endif %}
+        <div class="trots-title">{{ item.display_title }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── ACHIEVEMENTS BAR ─────────────────────────────────────── #}
+  {% if profile.barnstars or profile.achievements %}
+  <hr class="section-rule">
+  <div class="achievements-bar">
+    <div class="bar-label">{{ strings.achievements }}</div>
+    <div class="achievements-items">
+
+      {% for star in profile.barnstars %}
+      <div class="barnstar">
+        {% if star.image_url %}
+          <img class="barnstar-img" src="{{ star.image_url }}" alt="{{ star.name }}">
+        {% else %}
+          <div class="barnstar-img-placeholder"
+               {% if star.gradient %}style="background:{{ star.gradient }};"{% endif %}></div>
+        {% endif %}
+        <div class="barnstar-name">{{ star.name }}</div>
+      </div>
+      {% endfor %}
+
+      {% for badge in profile.achievements %}
+      <div class="badge">
+        <div class="badge-circle {{ badge.color_class }}">{{ badge.icon }}</div>
+        <div class="badge-name">{{ badge.name }}</div>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── FOOTER ───────────────────────────────────────────────── #}
+  <div class="card-footer">
+    <div class="footer-left">
+      {# Inline globe SVG — no external fetch needed in WeasyPrint #}
+      <svg class="footer-globe" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <ellipse cx="12" cy="12" rx="4.5" ry="10" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        <line x1="2"  y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="1.2"/>
+        <line x1="4"  y1="7"  x2="20" y2="7"  stroke="currentColor" stroke-width="1"/>
+        <line x1="4"  y1="17" x2="20" y2="17" stroke="currentColor" stroke-width="1"/>
+      </svg>
+      <span class="footer-text">{{ home_wiki_label }}</span>
+    </div>
+    <span class="footer-event">{{ event_name }}</span>
+  </div>
+
+</div>
+{# /card #}

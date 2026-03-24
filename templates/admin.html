@@ -1,0 +1,108 @@
+{#
+  admin.html — admin overview.
+
+  Context from app.py admin():
+    profiles    — list[UserProfile], all profiles ordered by username
+    storage_gb  — float, current snapshot storage in GB
+    storage_warn — bool, True if >= SNAPSHOT_STORAGE_WARNING_GB
+#}
+{% extends "base.html" %}
+{% block title %}{{ t('admin.title') }}{% endblock %}
+
+{% block head_extra %}
+  <script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <h1 class="page__title">{{ t('admin.title') }}</h1>
+
+  {% if storage_warn %}
+    <div class="warn-banner">
+      {{ t('admin.storage_warning', gb=storage_gb, limit=config.get('SNAPSHOT_STORAGE_WARNING_GB', 5)) }}
+    </div>
+  {% endif %}
+
+  <div class="admin-toolbar">
+    <a class="btn btn--secondary" href="{{ url_for('admin_export', format='zip') }}">
+      {{ t('admin.export_zip') }}
+    </a>
+    <a class="btn btn--secondary" href="{{ url_for('admin_export', format='pdf') }}">
+      {{ t('admin.export_merged') }}
+    </a>
+    <button class="btn btn--primary" id="btn-snapshot-all" data-action="snapshot-all">
+      {{ t('admin.snapshot_all') }}
+    </button>
+    <span style="margin-left:auto;font-size:0.85rem;color:#54595d">
+      {{ storage_gb | round(2) }} GB
+    </span>
+  </div>
+
+  {% if profiles %}
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Gebruiker</th>
+          <th>Gather</th>
+          <th>Snapshot</th>
+          <th>Verwerkt</th>
+          <th>Bijgewerkt</th>
+          <th>Acties</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in profiles %}
+          <tr>
+            <td>{{ p.username }}</td>
+            <td>
+              <span class="status-chip status-chip--{{ p.gather_status }}">
+                {{ p.gather_status }}
+              </span>
+              {% if p.gather_error %}
+                <span title="{{ p.gather_error }}" style="cursor:help;color:#d33">⚠</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if p.snapshot_version %}
+                <code style="font-size:0.8rem">{{ p.snapshot_version }}</code>
+              {% else %}
+                <span style="color:#54595d">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if p.processed_at %}
+                {{ p.processed_at.strftime('%d-%m-%Y') }}
+              {% else %}
+                <span style="color:#54595d">—</span>
+              {% endif %}
+            </td>
+            <td style="white-space:nowrap">
+              {% if p.updated_at %}{{ p.updated_at.strftime('%d-%m-%Y') }}{% endif %}
+            </td>
+            <td style="white-space:nowrap">
+              <button class="btn btn--small btn--secondary"
+                      data-action="snapshot-user"
+                      data-username="{{ p.username }}"
+                      {% if not p.snapshot_version and p.gather_status != 'done' %}disabled{% endif %}>
+                Snapshot
+              </button>
+              <button class="btn btn--small btn--secondary"
+                      data-action="mark-processed"
+                      data-username="{{ p.username }}"
+                      {% if not p.snapshot_version %}disabled{% endif %}>
+                Verwerkt
+              </button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p style="color:#54595d">{{ t('admin.no_profiles') }}</p>
+  {% endif %}
+
+</div>
+
+{# Status feedback line for JS actions #}
+<p id="admin-status" style="text-align:center;font-size:0.85rem;color:#54595d;margin-top:1rem;min-height:1.4em"></p>
+{% endblock %}

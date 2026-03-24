@@ -1,0 +1,69 @@
+{#
+  base.html — shared page layout.
+
+  Blocks:
+    title      — <title> content (plain text, no HTML)
+    head_extra — additional <link> or <meta> tags in <head>
+    content    — main page body
+
+  Context (injected by _inject_globals context processor):
+    t(key, **kwargs)  — translation function
+    event_name        — e.g. "Wall of Faces 2026"
+    deadline          — e.g. "2026-05-01"
+    card_theme        — CSS theme name
+
+  Session variables available in all templates:
+    session.username  — logged-in Wikimedia username, or absent if anonymous
+#}
+<!DOCTYPE html>
+<html lang="{{ config.get('UI_LANGUAGE', 'nl') }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ event_name }}{% endblock %} — {{ event_name }}</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  {% block head_extra %}{% endblock %}
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a class="site-nav__title" href="{{ url_for('index') }}">{{ event_name }}</a>
+    <div class="site-nav__right">
+      {% if session.get('username') %}
+        <span class="site-nav__username">{{ session.username }}</span>
+        <details class="site-nav__dropdown">
+          <summary class="site-nav__link site-nav__link--danger">{{ t('nav.delete_data') }}</summary>
+          <div class="site-nav__dropdown-menu">
+            <form method="POST" action="{{ url_for('api_reset_my_data') }}"
+                  onsubmit="return confirm('{{ t('account.reset_body') | e }}')">
+              <button type="submit" class="site-nav__dropdown-item">{{ t('account.reset_title') }}</button>
+            </form>
+            <form method="POST" action="{{ url_for('api_delete_my_account') }}"
+                  onsubmit="return confirm('{{ t('account.delete_body') | e }}')">
+              <button type="submit" class="site-nav__dropdown-item site-nav__dropdown-item--danger">{{ t('account.delete_title') }}</button>
+            </form>
+          </div>
+        </details>
+        <a class="site-nav__link" href="{{ url_for('logout') }}">{{ t('nav.logout') }}</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  {# Flash messages — categories: error, success, info, warning #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-list">
+        {% for category, message in messages %}
+          <li class="flash flash--{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+{#
+  index.html — landing page shown to unauthenticated visitors.
+  Logged-in users are redirected before reaching this template (see app.py index()).
+#}
+{% extends "base.html" %}
+{% block title %}{{ t('index.title') }}{% endblock %}
+
+{% block content %}
+<div class="landing">
+  <h1 class="landing__title">{{ t('index.title') }}</h1>
+  <p class="landing__subtitle">{{ t('index.subtitle') }}</p>
+  <a class="btn btn--primary" href="{{ url_for('login') }}">{{ t('index.login') }}</a>
+  <p class="landing__deadline">{{ deadline }}</p>
+</div>
+{% endblock %}

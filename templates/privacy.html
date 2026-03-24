@@ -1,0 +1,53 @@
+{#
+  privacy.html — privacy statement. Static content; no dynamic context needed.
+#}
+{% extends "base.html" %}
+{% block title %}{{ t('privacy.title') }}{% endblock %}
+
+{% block content %}
+<div class="prose">
+  <h1>{{ t('privacy.title') }}</h1>
+
+  <h2>Welke gegevens verzamelen we?</h2>
+  <p>
+    Wall of Faces verzamelt alleen gegevens die nodig zijn voor het maken van je persoonlijke
+    evenementkaart:
+  </p>
+  <ul>
+    <li>Je Wikimedia-gebruikersnaam (via OAuth-inlog)</li>
+    <li>Je registratiedatum en globale bewerkingstelling (via Wikimedia CentralAuth)</li>
+    <li>Tekst van je gebruikerspagina en overlegpagina op je thuiswiki (voor suggesties)</li>
+    <li>Inhoud die je zelf invult of kiest voor je kaart</li>
+    <li>Een PDF-snapshot van je kaart bij elke finalisering</li>
+  </ul>
+
+  <h2>Waarvoor gebruiken we je gegevens?</h2>
+  <p>
+    Je gegevens worden uitsluitend gebruikt om je persoonlijke kaart samen te stellen en
+    af te drukken voor het evenement. Gegevens worden niet gedeeld met derden, met
+    uitzondering van Mistral AI als je daar toestemming voor geeft (zie hieronder).
+  </p>
+
+  <h2>AI-verwerking (optioneel)</h2>
+  <p>
+    Als je toestemming geeft voor AI-analyse, wordt een deel van je wikitekst
+    (maximaal {{ config.get('MISTRAL_MAX_WIKITEXT_CHARS', 50000)|int|string }} tekens per wiki)
+    gestuurd naar Mistral AI op EU-servers om suggesties te genereren voor je kaart.
+    Je kunt deze toestemming op elk moment intrekken via de buffetpagina.
+  </p>
+
+  <h2>Bewaartermijn</h2>
+  <p>
+    Je gegevens worden bewaard totdat je je account verwijdert via de kaartpagina,
+    of totdat je account langer dan één jaar inactief is (waarna oude snapshots
+    automatisch worden opgeruimd).
+  </p>
+
+  <h2>Je rechten</h2>
+  <p>
+    Je kunt je account en alle bijbehorende gegevens op elk moment verwijderen
+    via de knop op je kaartpagina. Neem voor overige verzoeken contact op via
+    de evenementorganisatie.
+  </p>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+/*
+ * card-print.css — Print additions.
+ * Loaded on top of card-theme-*.css when rendering for WeasyPrint / browser print.
+ * Handles @page dimensions, colour preservation, and screen-only chrome removal.
+ */
+
+@page {
+  size: 148mm 210mm;   /* A5 */
+  margin: 0;
+}
+
+/* Force the card to exact A5 dimensions at print resolution */
+@media print {
+  body {
+    background: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .preview-label,
+  .card-page-chrome > *:not(.card) {
+    display: none;
+  }
+
+  .card {
+    width: 148mm;
+    height: 210mm;
+    box-shadow: none;
+    page-break-inside: avoid;
+  }
+
+  /* Preserve background colours (infobox header, permission chips, badge circles, etc.) */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

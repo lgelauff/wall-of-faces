@@ -1,0 +1,505 @@
+/*
+ * card-theme-wikipedia.css — Design A
+ * Wikipedia article aesthetic: serif body, double-rule title, blue infobox header.
+ * Applied to card_content.html (the semantic content layer).
+ *
+ * Screen: card is rendered at A5 paper scale (559 × 794 px @ 96 dpi equivalent).
+ * Print:  card-print.css is loaded additionally and handles @page + print-color-adjust.
+ */
+
+/* ── RESET ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── BODY / PAGE CHROME (browser only) ─────────────────────── */
+body {
+  background: #c8c8c8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px 64px;
+  gap: 10px;
+  font-family: 'Linux Libertine', 'Georgia', 'Times New Roman', serif;
+}
+
+.preview-label {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 11px;
+  color: #666;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── CARD ROOT ──────────────────────────────────────────────── */
+/* 148mm × 210mm at 96 dpi = 559 × 794 px */
+.card {
+  width: 559px;
+  height: 794px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.30), 0 0 0 1px rgba(0,0,0,0.06);
+  color: #202122;
+  font-size: 7.5pt;
+  line-height: 1.45;
+}
+
+/* ── CARD BODY ──────────────────────────────────────────────── */
+.card-body {
+  flex: 1;
+  padding: 18px 18px 0 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── TITLE BLOCK ────────────────────────────────────────────── */
+.card-title-block {
+  flex-shrink: 0;
+  margin-bottom: 7px;
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: bold;
+  line-height: 1.1;
+  color: #000;
+  letter-spacing: -0.01em;
+}
+
+/* Wikipedia-style double rule: thick line + thin line */
+.title-rule {
+  margin-top: 3px;
+  height: 0;
+  border: none;
+  border-top: 2px solid #a2a9b1;
+  border-bottom: 1px solid #a2a9b1;
+  padding-bottom: 1px;
+  background: transparent;
+  display: block;
+}
+
+/* ── MAIN CONTENT AREA ──────────────────────────────────────── */
+.card-content {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.clearfix::after { content: ""; display: table; clear: both; }
+
+/* ── INFOBOX ────────────────────────────────────────────────── */
+.infobox {
+  float: right;
+  width: 175px;
+  margin: 0 0 8px 11px;
+  border: 1px solid #a2a9b1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 6.8pt;
+  background: #fff;
+  clear: right;
+}
+
+.infobox-header {
+  background: #cee0f2;
+  text-align: center;
+  padding: 4px 5px;
+  font-weight: bold;
+  font-size: 7pt;
+  color: #000;
+  border-bottom: 1px solid #a2a9b1;
+  line-height: 1.2;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.infobox-image {
+  width: 100%;
+  height: 110px;
+  background: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #a2a9b1;
+  overflow: hidden;
+}
+
+.infobox-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8edf2;
+  color: #a2a9b1;   /* currentColor for the inline SVG fill */
+}
+
+.avatar-placeholder svg {
+  width: 56px;
+  height: 56px;
+  opacity: 0.35;
+}
+
+/* Stats table */
+.infobox-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.infobox-table tr td {
+  padding: 2.5px 6px;
+  vertical-align: top;
+  border-bottom: 1px solid #eaecf0;
+  line-height: 1.35;
+  color: #202122;
+}
+
+.infobox-table tr:last-child td {
+  border-bottom: none;
+}
+
+.infobox-table tr td:first-child {
+  font-weight: bold;
+  color: #54595d;
+  width: 40%;
+  font-size: 6.5pt;
+}
+
+/* Rights chips */
+.permission-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.permission-chip {
+  background: #fef3c7;
+  border: 1px solid #d97706;
+  border-radius: 2px;
+  padding: 0 4px;
+  font-size: 5.8pt;
+  color: #92400e;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+/* ── USERBOXES ──────────────────────────────────────────────── */
+.userboxes-section {
+  border-top: 1px solid #a2a9b1;
+}
+
+.userbox {
+  display: flex;
+  border-bottom: 1px solid #eaecf0;
+  font-size: 6.2pt;
+  line-height: 1.25;
+}
+
+.userbox:last-child {
+  border-bottom: none;
+}
+
+.userbox-left {
+  flex-shrink: 0;
+  width: 26px;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 6.5pt;
+  border-right: 1px solid #a2a9b1;
+  /* background + color set via inline style from userbox data */
+}
+
+.userbox-right {
+  flex: 1;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  color: #202122;
+}
+
+/* ── LEAD TEXT ──────────────────────────────────────────────── */
+.lead-text {
+  font-size: 7.5pt;
+  line-height: 1.52;
+  color: #202122;
+  margin-bottom: 7px;
+}
+
+.lead-text b {
+  font-weight: bold;
+}
+
+/* ── BIO IMAGE (legacy) ─────────────────────────────────────── */
+.bio-image {
+  float: left;
+  margin: 0 9px 4px 0;
+  width: 78px;
+  height: 84px;
+  border: 1px solid #a2a9b1;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── CONTENT IMAGES ─────────────────────────────────────────── */
+.content-images {
+  float: left;
+  display: flex;
+  gap: 4px;
+  margin: 0 9px 4px 0;
+}
+
+.content-image {
+  width: 72px;
+  height: 84px;
+  border: 1px solid #a2a9b1;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ── EXTRA SECTIONS ─────────────────────────────────────────── */
+.extra-sections {
+  clear: none;
+}
+
+.extra-section {
+  margin-bottom: 6px;
+}
+
+.extra-section-title {
+  font-size: 7pt;
+  font-weight: bold;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #54595d;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #eaecf0;
+  padding-bottom: 1px;
+  margin-bottom: 3px;
+}
+
+.extra-section-text {
+  font-size: 7pt;
+  line-height: 1.48;
+  color: #202122;
+}
+
+/* ── SEPARATOR ──────────────────────────────────────────────── */
+.section-rule {
+  border: none;
+  border-top: 1px solid #a2a9b1;
+  margin: 0;
+}
+
+/* ── TROTS OP BAR ───────────────────────────────────────────── */
+.trots-bar {
+  padding: 7px 18px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.bar-label {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 5.8pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #72777d;
+}
+
+.trots-items {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+}
+
+.trots-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Single item should not stretch to full bar width. */
+.trots-item:only-child {
+  flex: none;
+  width: 30%;
+}
+
+.trots-thumb {
+  width: 100%;
+  height: 46px;
+  object-fit: cover;
+  border: 1px solid #a2a9b1;
+  display: block;
+}
+
+.trots-thumb-placeholder {
+  width: 100%;
+  height: 46px;
+  background: #f3f4f6;
+  border: 1px solid #a2a9b1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 5.5pt;
+  color: #9ca3af;
+  text-align: center;
+  padding: 2px;
+}
+
+.trots-title {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 5.5pt;
+  color: #3366cc;
+  text-align: center;
+  line-height: 1.25;
+  width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ── ACHIEVEMENTS BAR ───────────────────────────────────────── */
+.achievements-bar {
+  padding: 6px 18px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.achievements-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.barnstar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 42px;
+}
+
+.barnstar-img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  display: block;
+}
+
+/* CSS star polygon — shown when no barnstar image is available */
+.barnstar-img-placeholder {
+  width: 34px;
+  height: 34px;
+  clip-path: polygon(
+    50% 0%, 61% 35%, 98% 35%, 68% 57%,
+    79% 91%, 50% 70%, 21% 91%, 32% 57%,
+    2% 35%, 39% 35%
+  );
+  display: block;
+  /* background gradient set via inline style from barnstar data */
+  background: radial-gradient(circle, #f5e642 0%, #e8a800 50%, #c47a00 100%);
+}
+
+.barnstar-name {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 5pt;
+  color: #54595d;
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+}
+
+/* Achievement badges */
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 42px;
+}
+
+.badge-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 6.5pt;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  border: 1.5px solid;
+}
+
+.badge-circle.green  { background: #f0fdf4; border-color: #6ec68a; }
+.badge-circle.blue   { background: #eff6ff; border-color: #7ab3e8; }
+.badge-circle.purple { background: #faf5ff; border-color: #b49de0; }
+.badge-circle.amber  { background: #fffbeb; border-color: #f0c040; }
+.badge-circle.red    { background: #fff5f5; border-color: #f09090; }
+
+.badge-name {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 5pt;
+  color: #54595d;
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+.card-footer {
+  padding: 4px 18px;
+  border-top: 1px solid #a2a9b1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  background: #f8f9fa;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.footer-globe {
+  width: 14px;
+  height: 14px;
+  color: #72777d;   /* currentColor for inline SVG strokes */
+  opacity: 0.45;
+}
+
+.footer-text {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 5.5pt;
+  color: #72777d;
+}
+
+.footer-event {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 5.5pt;
+  color: #a2a9b1;
+  font-style: italic;
+}

@@ -1,0 +1,117 @@
+# strings/en.yml — English UI strings
+# Reference language; also used when UI_LANGUAGE = "en"
+
+# ── Navigation ──────────────────────────────────────────────────
+nav.logout: Log out
+nav.delete_data: Manage data
+nav.back: Back
+nav.save: Save
+nav.finalize: Finalize card
+
+# ── Landing page ────────────────────────────────────────────────
+index.title: Wall of Faces
+index.subtitle: Build your personal card for the event.
+index.login: Log in with Wikipedia
+
+# ── Gather screen ───────────────────────────────────────────────
+gather.title: Collecting data
+gather.progress: Collecting data…
+gather.done: Done! Your card is ready.
+gather.error: "Something went wrong: {message}"
+gather.queue_position: "You are at position {n} in the queue."
+gather.queue_position_many: "You are at position 5 or later in the queue."
+gather.llm_consent_title: "Want AI suggestions?"
+gather.llm_consent_body: >
+  We can analyse your user page with Mistral AI (EU servers) to generate
+  extra suggestions for your card, such as interests and language skills.
+  Your wiki text (max. 50,000 characters per wiki) will be sent to Mistral for this purpose.
+  You can withdraw this consent later via your card settings.
+gather.llm_consent_yes: "Yes, use AI analysis"
+gather.llm_consent_no: "No, skip AI analysis"
+gather.start: Collect data
+
+# ── Buffet screen ───────────────────────────────────────────────
+buffet.title: Build your card
+buffet.explanation: Explanation
+buffet.infobox: Infobox
+buffet.content: Content
+buffet.accomplishments: Accomplishments
+buffet.accept: Accept
+buffet.reject: Remove
+buffet.no_suggestions: No suggestions found for this section.
+buffet.proud_of_input: "Which articles, images or contributions are you proud of?"
+buffet.proud_of_placeholder: "Article or file name"
+buffet.proud_of_wiki_placeholder: "wiki (e.g. enwiki)"
+buffet.home_base_hint: "City or region where you live"
+buffet.home_wiki_hint: "Your most active wiki — determines how your name appears on the card"
+buffet.home_wiki_placeholder: "e.g. nlwiki, enwiki"
+buffet.profile_picture: Profile picture
+buffet.profile_picture_manual: "Or enter a filename manually:"
+buffet.content_images: Images
+buffet.content_images_hint: "Select images to show in the content area (max 3)."
+buffet.add_section_title_placeholder: "Section title (max 100 characters)"
+buffet.add_section_text_placeholder: "Section text (max 500 characters)"
+buffet.add_section_btn: "+ Add section"
+buffet.explanation_intro: >
+  Your card has three areas. Use the tabs above to fill them in.
+buffet.explanation_infobox_title: "Infobox (right)"
+buffet.explanation_infobox_body: >
+  Profile picture, home location, edit count, user rights and userboxes.
+  This information is shown in the column on the right side of the card.
+buffet.explanation_content_title: "Content (centre)"
+buffet.explanation_content_body: >
+  A short biography (~50–80 words), optional images, and extra sections (~30–50 words each).
+  One or two extra sections fit comfortably on the card.
+buffet.explanation_accomplishments_title: "Accomplishments (bottom)"
+buffet.explanation_accomplishments_body: >
+  Articles or files you are proud of, barnstars you have received,
+  and achievement badges based on your editing history.
+
+# ── Card preview ────────────────────────────────────────────────
+card.preview_title: Card preview
+card.preview_label: "Wall of Faces · Card preview · A5"
+card.overflow_warning: "⚠ Your card is too full — remove or shorten content until everything fits."
+card.finalized_notice: "Your card was finalized on {date}."
+card.processed_notice: "Your card has been downloaded for processing. Later changes may not be printed."
+
+# ── Card content strings (used in card_content.html and PDF) ────
+card.user_prefix: User
+card.member_since: Member since
+card.home_base: Home base
+card.home_wiki: Home wiki
+card.edit_count: Edits
+card.rights: Rights
+card.proud_of: Proud of
+card.achievements: Achievements
+card.biography_image_alt: Biography image
+card.no_image: no image
+
+# ── Finalize / snapshot ─────────────────────────────────────────
+finalize.confirm_title: Save card
+finalize.confirm_body: "You have reached the maximum of {limit} saved versions. If you continue, all older versions will be deleted. Your current latest version will be kept."
+finalize.confirm_ok: Continue and delete older versions
+finalize.confirm_cancel: Cancel
+finalize.overflow_error: "Your card is too full — adjust the content and try again."
+finalize.too_soon: "Wait {seconds} more seconds before saving again."
+
+# ── Account ─────────────────────────────────────────────────────
+account.reset_title: Start over
+account.reset_body: "This deletes all your collected data and card versions so you can start fresh. Your account is kept."
+account.delete_title: Delete account
+account.delete_body: "This permanently deletes your account including all data and PDF versions. You will need to log in again to create a new account. This cannot be undone."
+
+# ── Admin ───────────────────────────────────────────────────────
+admin.title: Admin
+admin.export_zip: Export as ZIP
+admin.export_merged: Export as merged PDF
+admin.snapshot_all: Snapshot all cards
+admin.storage_warning: "⚠ Disk usage: {gb:.1f} GB used (limit {limit} GB)"
+admin.no_profiles: No profiles yet.
+
+# ── Privacy ─────────────────────────────────────────────────────
+privacy.title: Privacy statement
+
+# ── Errors ──────────────────────────────────────────────────────
+error.not_found: Page not found.
+error.forbidden: Access denied.
+error.server: A server error occurred.
