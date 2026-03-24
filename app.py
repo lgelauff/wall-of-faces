@@ -240,6 +240,82 @@ def admin_required(f):
     return wrapper
 
 
+# ── Gather timing helpers ─────────────────────────────────────────────────────
+
+def _avg_gather_seconds(n: int = 20) -> float | None:
+    """Return the mean duration (seconds) of the last *n* successful gather jobs, or None."""
+    rows = db.session.execute(
+        text("""
+            SELECT started_at, finished_at
+            FROM gather_queue
+            WHERE status = 'done'
+              AND started_at IS NOT NULL
+              AND finished_at IS NOT NULL
+            ORDER BY finished_at DESC
+            LIMIT :n
+        """),
+        {'n': n},
+    ).fetchall()
+    if not rows:
+        return None
+    durations = [
+        (row.finished_at - row.started_at).total_seconds()
+        for row in rows
+        if row.finished_at >= row.started_at
+    ]
+    return sum(durations) / len(durations) if durations else None
+
+
+def _gather_stats() -> dict:
+    """Return overall gather timing stats and last 20 runs for the admin view."""
+    rows = db.session.execute(
+        text("""
+            SELECT username, status, started_at, finished_at
+            FROM gather_queue
+            WHERE started_at IS NOT NULL AND finished_at IS NOT NULL
+            ORDER BY finished_at DESC
+            LIMIT 20
+        """),
+    ).fetchall()
+
+    recent = []
+    for row in rows:
+        secs = (row.finished_at - row.started_at).total_seconds()
+        recent.append({
+            'username':    row.username,
+            'status':      row.status,
+            'seconds':     round(secs, 1),
+            'finished_at': row.finished_at,
+        })
+
+    # Overall stats: fetch all done rows and compute in Python (SQLite-compatible)
+    all_done = db.session.execute(
+        text("""
+            SELECT started_at, finished_at
+            FROM gather_queue
+            WHERE status = 'done'
+              AND started_at IS NOT NULL AND finished_at IS NOT NULL
+        """),
+    ).fetchall()
+
+    overall = None
+    if all_done:
+        durations = [
+            (row.finished_at - row.started_at).total_seconds()
+            for row in all_done
+            if row.finished_at >= row.started_at
+        ]
+        if durations:
+            overall = {
+                'count':   len(durations),
+                'avg_sec': round(sum(durations) / len(durations), 1),
+                'min_sec': round(min(durations), 1),
+                'max_sec': round(max(durations), 1),
+            }
+
+    return {'recent': recent, 'overall': overall}
+
+
 # ── Route registration ────────────────────────────────────────────────────────
 
 def _register_routes(app: Flask) -> None:  # noqa: C901 (intentionally long)
@@ -611,6 +687,7 @@ def _register_routes(app: Flask) -> None:  # noqa: C901 (intentionally long)
             'progress':       profile.gather_progress,
             'queue_position': pos,
             'error_message':  profile.gather_error,
+            'avg_seconds':    _avg_gather_seconds(),
         })
 
     # ── API: save-profile ─────────────────────────────────────────────────────
@@ -838,11 +915,13 @@ def _register_routes(app: Flask) -> None:  # noqa: C901 (intentionally long)
         profiles      = UserProfile.query.order_by(UserProfile.username).all()
         storage_gb    = _snapshot_storage_gb()
         storage_warn  = storage_gb >= app.config['SNAPSHOT_STORAGE_WARNING_GB']
+        gather_timing = _gather_stats()
         return render_template(
             'admin.html',
             profiles=profiles,
             storage_gb=storage_gb,
             storage_warn=storage_warn,
+            gather_timing=gather_timing,
         )
 
     @app.get('/admin/export')
@@ -1186,6 +1265,7 @@ def _dispatch_gather(app: Flask) -> None:
 
 def _on_gather_done(future, username: str, app: Flask) -> None:
     """Future callback: update UserProfile and GatherQueue row after a gather job finishes."""
+    finished = utcnow()
     with app.app_context():
         try:
             profile = UserProfile.query.filter_by(username=username).first()
@@ -1199,12 +1279,21 @@ def _on_gather_done(future, username: str, app: Flask) -> None:
             else:
                 profile.gather_status = 'done'
                 profile.gather_error  = None
-            profile.last_gathered_at = utcnow()
+            profile.last_gathered_at = finished
+            # Compute and store duration from started_at
+            row = db.session.execute(
+                text("SELECT started_at FROM gather_queue "
+                     "WHERE username=:u AND status='running' LIMIT 1"),
+                {'u': username},
+            ).fetchone()
+            if row and row.started_at:
+                started = row.started_at.replace(tzinfo=timezone.utc)
+                profile.gather_seconds = (finished - started).total_seconds()
             # Mark the GatherQueue row done
             db.session.execute(
                 text("UPDATE gather_queue SET status=:s, finished_at=:now "
                      "WHERE username=:u AND status='running'"),
-                {'s': 'error' if exc else 'done', 'u': username, 'now': utcnow().replace(tzinfo=None)},
+                {'s': 'error' if exc else 'done', 'u': username, 'now': finished.replace(tzinfo=None)},
             )
             db.session.commit()
         except Exception as e:

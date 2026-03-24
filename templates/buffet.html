@@ -244,6 +244,9 @@
               <div class="buffet-item__meta">{{ sec.text | truncate(80) }}</div>
             </div>
             <div class="buffet-item__actions">
+              <button class="btn btn--small btn--secondary" data-action="edit-section">
+                {{ t('buffet.edit') }}
+              </button>
               <button class="btn btn--small btn--secondary" data-action="remove-section">
                 {{ t('buffet.reject') }}
               </button>
@@ -400,8 +403,11 @@
 {# Embedded i18n for buffet.js #}
 <script id="buffet-i18n" type="application/json">
 {
-  "accept": {{ t('buffet.accept') | tojson }},
-  "reject": {{ t('buffet.reject') | tojson }}
+  "accept":        {{ t('buffet.accept')             | tojson }},
+  "reject":        {{ t('buffet.reject')             | tojson }},
+  "edit":          {{ t('buffet.edit')               | tojson }},
+  "add_section":   {{ t('buffet.add_section_btn')    | tojson }},
+  "save_section":  {{ t('buffet.save_section_btn')   | tojson }}
 }
 </script>
 {% endblock %}

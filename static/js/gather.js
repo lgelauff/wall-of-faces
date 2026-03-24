@@ -21,6 +21,8 @@
   const elProgressLabel= document.getElementById('progress-label');
   const elStatusLine   = document.getElementById('status-line');
 
+  const elDurationHint = document.getElementById('duration-hint');
+
   const elBtnConsentYes = document.getElementById('btn-consent-yes');
   const elBtnConsentNo  = document.getElementById('btn-consent-no');
   const elBtnStart      = document.getElementById('btn-start');
@@ -43,12 +45,13 @@
   // ── Render state ──────────────────────────────────────────────────────────
 
   function renderState(data) {
-    const { status, progress, queue_position, error_message } = data;
+    const { status, progress, queue_position, error_message, avg_seconds } = data;
 
     hide(elConsentBox);
     hide(elStartBox);
     hide(elProgressBox);
     setStatus('');
+    elDurationHint.textContent = '';
 
     if (status === 'idle' || status === 'error') {
       stopPolling();
@@ -70,6 +73,11 @@
           ? i18n.queue_position_many
           : i18n.queue_position.replace('{n}', queue_position);
         setStatus(msg);
+      }
+
+      if (avg_seconds) {
+        const mins = Math.round(avg_seconds / 60 * 10) / 10;
+        elDurationHint.textContent = i18n.expected_duration.replace('{min}', mins);
       }
 
       startPolling();

@@ -203,6 +203,13 @@
   </div>
   {% endif %}
 
+  {# ── SIGNATURE ────────────────────────────────────────────── #}
+  {% if profile.signature_html %}
+  <div class="card-signature">
+    {{ profile.signature_html | safe }}
+  </div>
+  {% endif %}
+
   {# ── FOOTER ───────────────────────────────────────────────── #}
   <div class="card-footer">
     <div class="footer-left">

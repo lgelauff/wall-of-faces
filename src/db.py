@@ -68,6 +68,7 @@ class UserProfile(db.Model):  # type: ignore[misc, name-defined]
     # llm_consent: NULL = not yet asked, False = declined, True = opted in
     llm_consent     = db.Column(db.Boolean,     nullable=True)
     gather_error    = db.Column(db.String(500), nullable=True)
+    gather_seconds  = db.Column(db.Float,       nullable=True)   # duration of last gather run
     last_gathered_at= db.Column(UTCDateTime,    nullable=True)
 
     # ── Timestamps ─────────────────────────────────────────────────────────────

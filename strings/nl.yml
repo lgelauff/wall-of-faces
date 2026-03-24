@@ -20,6 +20,7 @@ gather.done: Klaar! Je kaart staat voor je.
 gather.error: "Er is iets misgegaan: {message}"
 gather.queue_position: "Je staat op positie {n} in de wachtrij."
 gather.queue_position_many: "Je staat op positie 5 of later in de wachtrij."
+gather.expected_duration: "Duurt gemiddeld {min} minuten — je kunt de pagina sluiten en later terugkomen."
 gather.llm_consent_title: "Wil je AI-suggesties?"
 gather.llm_consent_body: >
   We kunnen je gebruikerspagina analyseren met Mistral AI (EU-servers) om
@@ -38,13 +39,14 @@ buffet.content: Inhoud
 buffet.accomplishments: Prestaties
 buffet.accept: Accepteer
 buffet.reject: Verwijder
+buffet.edit: Bewerken
 buffet.no_suggestions: Geen suggesties gevonden voor dit onderdeel.
 buffet.proud_of_input: "Welke artikelen, afbeeldingen of bijdragen ben je trots op?"
 buffet.proud_of_placeholder: "Naam van artikel of afbeelding"
 buffet.proud_of_wiki_placeholder: "wiki (bijv. enwiki)"
 buffet.home_base_hint: "Stad of regio waar je woont"
 buffet.home_wiki_hint: "Je meest actieve wiki — bepaalt hoe je naam op de kaart verschijnt"
-buffet.home_wiki_placeholder: "bijv. nlwiki, enwiki"
+buffet.home_wiki_placeholder: "bijv. nlwiki of enwiki"
 buffet.profile_picture: Profielfoto
 buffet.profile_picture_manual: "Of voer een bestandsnaam handmatig in:"
 buffet.content_images: Afbeeldingen
@@ -52,6 +54,7 @@ buffet.content_images_hint: "Selecteer afbeeldingen voor het inhoudsgedeelte (ma
 buffet.add_section_title_placeholder: "Sectietitel (max. 100 tekens)"
 buffet.add_section_text_placeholder: "Sectietekst (max. 500 tekens)"
 buffet.add_section_btn: "+ Rubriek toevoegen"
+buffet.save_section_btn: "Opslaan"
 buffet.explanation_intro: >
   Je kaart heeft drie gebieden. Gebruik de tabbladen hierboven om ze in te vullen.
 buffet.explanation_infobox_title: "Infobox (rechts)"
@@ -69,7 +72,7 @@ buffet.explanation_accomplishments_body: >
 
 # ── Card preview ────────────────────────────────────────────────
 card.preview_title: Kaartvoorbeeld
-card.preview_label: "Wall of Faces · Kaartvoorbeeld · A5"
+card.preview_label: "Wall of Faces · Kaartvoorbeeld · A5 (148 × 210 mm)"
 card.overflow_warning: "⚠ Je kaart is te vol — verwijder of verkort inhoud totdat alles past."
 card.finalized_notice: "Je kaart is gefinaliseerd op {date}."
 card.processed_notice: "Je kaart is gedownload voor verwerking. Latere wijzigingen worden mogelijk niet afgedrukt."

@@ -2,9 +2,11 @@
   admin.html — admin overview.
 
   Context from app.py admin():
-    profiles    — list[UserProfile], all profiles ordered by username
-    storage_gb  — float, current snapshot storage in GB
-    storage_warn — bool, True if >= SNAPSHOT_STORAGE_WARNING_GB
+    profiles      — list[UserProfile], all profiles ordered by username
+    storage_gb    — float, current snapshot storage in GB
+    storage_warn  — bool, True if >= SNAPSHOT_STORAGE_WARNING_GB
+    gather_timing — {recent: list[{username, status, seconds, finished_at}],
+                     overall: {count, avg_sec, min_sec, max_sec} | None}
 #}
 {% extends "base.html" %}
 {% block title %}{{ t('admin.title') }}{% endblock %}
@@ -102,6 +104,50 @@
   {% endif %}
 
 </div>
+
+{# ── Gather timing stats ─────────────────────────────────────────────────── #}
+<section style="margin-top:2rem">
+  <h2 style="font-size:1rem;font-weight:600;margin-bottom:0.5rem">Gather — duur</h2>
+
+  {% if gather_timing.overall %}
+    {% set o = gather_timing.overall %}
+    <p style="font-size:0.85rem;color:#54595d;margin-bottom:0.75rem">
+      {{ o.count }} runs &nbsp;·&nbsp;
+      gem. {{ (o.avg_sec / 60) | round(1) }} min
+      &nbsp;·&nbsp; min {{ (o.min_sec / 60) | round(1) }} min
+      &nbsp;·&nbsp; max {{ (o.max_sec / 60) | round(1) }} min
+    </p>
+  {% else %}
+    <p style="font-size:0.85rem;color:#54595d;margin-bottom:0.75rem">Nog geen voltooide gather-runs.</p>
+  {% endif %}
+
+  {% if gather_timing.recent %}
+    <table class="admin-table" style="font-size:0.82rem">
+      <thead>
+        <tr>
+          <th>Gebruiker</th>
+          <th>Status</th>
+          <th style="text-align:right">Duur (s)</th>
+          <th>Klaar om</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in gather_timing.recent %}
+          <tr>
+            <td>{{ r.username }}</td>
+            <td>
+              <span class="status-chip status-chip--{{ r.status }}">{{ r.status }}</span>
+            </td>
+            <td style="text-align:right">{{ r.seconds }}</td>
+            <td style="white-space:nowrap">
+              {% if r.finished_at %}{{ r.finished_at.strftime('%d-%m %H:%M') }}{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</section>
 
 {# Status feedback line for JS actions #}
 <p id="admin-status" style="text-align:center;font-size:0.85rem;color:#54595d;margin-top:1rem;min-height:1.4em"></p>

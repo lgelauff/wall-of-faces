@@ -236,6 +236,37 @@
       }));
   }
 
+  function makeSectionRow(title, text) {
+    const row = document.createElement('div');
+    row.className = 'buffet-item';
+    row.dataset.type         = 'extra-section';
+    row.dataset.sectionTitle = title;
+    row.dataset.sectionText  = text;
+    row.innerHTML = `
+      <div class="buffet-item__body">
+        <div class="buffet-item__label">${title}</div>
+        <div class="buffet-item__meta">${text.substring(0, 80)}${text.length > 80 ? '…' : ''}</div>
+      </div>
+      <div class="buffet-item__actions">
+        <button class="btn btn--small btn--secondary" data-action="edit-section">${i18n.edit}</button>
+        <button class="btn btn--small btn--secondary" data-action="remove-section">${i18n.reject}</button>
+      </div>
+    `;
+    row.querySelector('[data-action="remove-section"]').addEventListener('click', () => {
+      row.remove();
+      saveField('extra_sections', getExtraSections());
+    });
+    row.querySelector('[data-action="edit-section"]').addEventListener('click', () => {
+      inputSectionTitle.value = row.dataset.sectionTitle;
+      inputSectionText.value  = row.dataset.sectionText;
+      btnAddSection.dataset.editingRow = '';
+      btnAddSection._editTarget = row;
+      btnAddSection.textContent = i18n.save_section;
+      inputSectionTitle.focus();
+    });
+    return row;
+  }
+
   document.querySelectorAll('[data-action="remove-section"]').forEach(btn => {
     btn.addEventListener('click', () => {
       btn.closest('.buffet-item').remove();
@@ -243,7 +274,18 @@
     });
   });
 
-  const btnAddSection    = document.getElementById('btn-add-section');
+  document.querySelectorAll('[data-action="edit-section"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = btn.closest('.buffet-item');
+      inputSectionTitle.value = row.dataset.sectionTitle;
+      inputSectionText.value  = row.dataset.sectionText;
+      btnAddSection._editTarget = row;
+      btnAddSection.textContent = i18n.save_section;
+      inputSectionTitle.focus();
+    });
+  });
+
+  const btnAddSection     = document.getElementById('btn-add-section');
   const inputSectionTitle = document.getElementById('input-section-title');
   const inputSectionText  = document.getElementById('input-section-text');
 
@@ -254,28 +296,21 @@
       if (!title || !text) return;
 
       const list = document.getElementById('extra-sections-list');
-      const row  = document.createElement('div');
-      row.className = 'buffet-item';
-      row.dataset.type         = 'extra-section';
-      row.dataset.sectionTitle = title;
-      row.dataset.sectionText  = text;
-      row.innerHTML = `
-        <div class="buffet-item__body">
-          <div class="buffet-item__label">${title}</div>
-          <div class="buffet-item__meta">${text.substring(0, 80)}${text.length > 80 ? '…' : ''}</div>
-        </div>
-        <div class="buffet-item__actions">
-          <button class="btn btn--small btn--secondary" data-action="remove-section">
-            ${i18n.reject}
-          </button>
-        </div>
-      `;
-      row.querySelector('[data-action="remove-section"]').addEventListener('click', btn => {
-        btn.target.closest('.buffet-item').remove();
-        saveField('extra_sections', getExtraSections());
-      });
 
-      list.appendChild(row);
+      if (btnAddSection._editTarget) {
+        // Update existing row
+        const target = btnAddSection._editTarget;
+        target.dataset.sectionTitle = title;
+        target.dataset.sectionText  = text;
+        target.querySelector('.buffet-item__label').textContent = title;
+        target.querySelector('.buffet-item__meta').textContent  =
+          text.substring(0, 80) + (text.length > 80 ? '…' : '');
+        btnAddSection._editTarget = null;
+        btnAddSection.textContent = i18n.add_section;
+      } else {
+        list.appendChild(makeSectionRow(title, text));
+      }
+
       inputSectionTitle.value = '';
       inputSectionText.value  = '';
       saveField('extra_sections', getExtraSections());

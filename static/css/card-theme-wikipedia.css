@@ -467,6 +467,15 @@ body {
   width: 100%;
 }
 
+/* ── SIGNATURE ──────────────────────────────────────────────── */
+.card-signature {
+  padding: 4px 18px 2px;
+  text-align: right;
+  font-size: 8pt;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
 /* ── FOOTER ─────────────────────────────────────────────────── */
 .card-footer {
   padding: 4px 18px;
