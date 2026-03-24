@@ -400,23 +400,20 @@ webservice --backend=kubernetes python3.11 logs
 
 ### Updating a running deployment
 
-When you push new code, update the deployment like this:
+After pushing new code to GitHub, SSH into Toolforge and run:
 
 ```bash
 become profile-creator-nlwiki
 cd ~/wall-of-faces
-
-# Pull the latest code
 git pull
-
-# Install any new dependencies
 uv sync --no-dev
-
-# Apply any new database migrations (safe to run even if there are none)
 uv run flask --app wsgi:application db upgrade
-
-# Restart the webservice to pick up the new code
+cd ~
 webservice --backend=kubernetes python3.11 restart
 ```
 
-The restart takes a few seconds. Check `healthz` afterwards to confirm it came back up cleanly.
+Notes:
+- `uv sync --no-dev` is safe to run even if there are no new dependencies
+- `db upgrade` is safe to run even if there are no new migrations
+- `webservice restart` must be run from the home directory (`~`), not from inside the repo
+- Check `healthz` afterwards to confirm it came back up cleanly
