@@ -103,7 +103,7 @@ def get_global_user_info(username: str) -> dict[str, Any] | None:
     with _centralauth().connect() as conn:
         row = conn.execute(
             text("""
-                SELECT gu_registration, gu_editcount
+                SELECT gu_registration
                 FROM globaluser
                 WHERE gu_name = :name
                 LIMIT 1
@@ -130,7 +130,7 @@ def get_global_user_info(username: str) -> dict[str, Any] | None:
 
     return {
         'registration_date': reg_dt,
-        'global_edit_count': int(row.gu_editcount) if row.gu_editcount is not None else None,
+        'global_edit_count': None,  # gu_editcount not available on Toolforge replicas
     }
 
 

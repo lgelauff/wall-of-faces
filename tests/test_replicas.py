@@ -111,21 +111,11 @@ class TestGetGlobalUserInfo:
         result = self._call(row)
         assert result["registration_date"] is None
 
-    def test_edit_count_returned(self):
+    def test_edit_count_always_none(self):
+        # gu_editcount is not available on Toolforge replicas; always returns None
         row = _row("20120314120000", 42)
         result = self._call(row)
-        assert result["global_edit_count"] == 42
-
-    def test_none_edit_count_returns_none(self):
-        row = _row("20120314120000", None)
-        result = self._call(row)
         assert result["global_edit_count"] is None
-
-    def test_edit_count_coerced_to_int(self):
-        row = _row("20120314120000", "9999")
-        result = self._call(row)
-        assert result["global_edit_count"] == 9999
-        assert isinstance(result["global_edit_count"], int)
 
     def test_returns_dict_with_expected_keys(self):
         row = _row("20120314120000", 100)

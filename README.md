@@ -358,27 +358,28 @@ If you see an error about the database connection, double-check the `database-ur
 
 ### Step 9 — Start the webservice
 
-First, create the symlink that Toolforge's webservice wrapper expects, and make sure dependencies are installed:
+Create the symlink that Toolforge expects, then create a virtualenv using the system Python and install dependencies into it:
 
 ```bash
 mkdir -p ~/www/python
 ln -s ~/wall-of-faces ~/www/python/src
-cd ~/wall-of-faces && uv sync --no-dev
+uv venv --python /usr/bin/python3 ~/www/python/venv
+uv pip install --python ~/www/python/venv/bin/python -r ~/wall-of-faces/requirements.txt
 ```
 
 Then start the webservice from the home directory:
 
 ```bash
 cd ~
-webservice --backend=kubernetes python3.11 start
+webservice --backend=kubernetes python3.13 start
 ```
 
-Toolforge will find `uwsgi.ini` automatically and use it to configure the server. The service runs on a single process with 8 threads so the background job coordinator works correctly.
+Toolforge detects `~/www/python/venv` automatically and passes it to uWSGI. The service runs on a single process with 8 threads so the background job coordinator works correctly.
 
 To check whether it started:
 
 ```bash
-webservice --backend=kubernetes python3.11 status
+webservice --backend=kubernetes python3.13 status
 ```
 
 ### Step 10 — Verify
@@ -393,7 +394,7 @@ Open these URLs in your browser:
 If the health check fails, check the logs:
 
 ```bash
-webservice --backend=kubernetes python3.11 logs
+webservice --backend=kubernetes python3.13 logs
 ```
 
 ---
@@ -406,14 +407,14 @@ After pushing new code to GitHub, SSH into Toolforge and run:
 become profile-creator-nlwiki
 cd ~/wall-of-faces
 git pull
-uv sync --no-dev
+uv pip install --python ~/www/python/venv/bin/python -r requirements.txt
 uv run flask --app wsgi:application db upgrade
 cd ~
-webservice --backend=kubernetes python3.11 restart
+webservice --backend=kubernetes python3.13 restart
 ```
 
 Notes:
-- `uv sync --no-dev` is safe to run even if there are no new dependencies
+- `uv pip install` is safe to run even if there are no new dependencies
 - `db upgrade` is safe to run even if there are no new migrations
 - `webservice restart` must be run from the home directory (`~`), not from inside the repo
 - Check `healthz` afterwards to confirm it came back up cleanly
