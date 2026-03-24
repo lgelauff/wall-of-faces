@@ -250,21 +250,32 @@ uv sync --no-dev
 
 ### Step 4 — Create the database
 
-The tool needs its own MySQL database on Toolforge. Request one at [Toolsadmin → Databases](https://toolsadmin.wikimedia.org/tools/tool/profile-creator-nlwiki) (you may need to be logged in as your personal account, not the tool account).
-
-Once created, Toolforge provides a credential file at `~/replica.my.cnf`. Find your database name and credentials there:
+Toolforge provides a credential file at `~/replica.my.cnf` automatically. Read it to find your credential username and password:
 
 ```bash
 cat ~/replica.my.cnf
 ```
 
-The database URL you will need looks like this — fill in the values from `replica.my.cnf`:
+Connect to the shared ToolsDB host and create the database (replace `s12345` with your actual credential username from `replica.my.cnf`):
+
+```bash
+mariadb --defaults-file=$HOME/replica.my.cnf -h tools.db.svc.wikimedia.cloud
+```
+
+Inside the MariaDB shell (replace `s12345` with your actual credential username):
+
+```sql
+CREATE DATABASE s12345__profile_creator_nlwiki CHARACTER SET utf8;
+EXIT;
+```
+
+The database name must start with your credential username followed by two underscores. The `CHARACTER SET utf8` avoids index-size errors during migrations. See [Help:Toolforge/ToolsDB](https://wikitech.wikimedia.org/wiki/Help:Toolforge/ToolsDB) for full details.
+
+The database URL for the app looks like this — fill in your credential username and password from `replica.my.cnf`:
 
 ```
-mysql+pymysql://s12345:yourpassword@tools.db.svc.wikimedia.cloud/s12345__wall_of_faces
+mysql+pymysql://s12345:yourpassword@tools.db.svc.wikimedia.cloud/s12345__profile_creator_nlwiki
 ```
-
-The database name (`s12345__wall_of_faces`) must be created via Toolsadmin. The part before `__` is your tool's database user prefix.
 
 ### Step 5 — Create a directory for snapshot files
 
@@ -277,60 +288,57 @@ chmod 700 ~/snapshots
 
 ### Step 6 — Store secrets
 
-The app reads secrets from files under `/run/secrets/profile-creator-nlwiki/`. On Toolforge Kubernetes, you store these as [tool secrets](https://wikitech.wikimedia.org/wiki/Help:Toolforge/Kubernetes/Secrets) using the `toolforge` CLI.
+The app reads secrets from environment variables. On Toolforge, store them using `toolforge envvars create`.
 
-First, generate a random secret key for Flask session signing:
-
-```bash
-python3 -c "import secrets; print(secrets.token_hex(64))"
-```
-
-Copy the output — you will use it in the next command.
-
-Create each secret (run these one at a time, replacing the placeholder values):
+Create each envvar (run these one at a time, replacing the placeholder values):
 
 ```bash
-toolforge secrets create secret-key --from-literal=value="paste_your_64char_hex_here"
-toolforge secrets create database-url --from-literal=value="mysql+pymysql://s12345:password@tools.db.svc.wikimedia.cloud/s12345__wall_of_faces"
-toolforge secrets create oauth-client-id --from-literal=value="your_client_id"
-toolforge secrets create oauth-client-secret --from-literal=value="your_client_secret"
-toolforge secrets create oauth-redirect-uri --from-literal=value="https://profile-creator-nlwiki.toolforge.org/oauth-callback"
-toolforge secrets create mistral-api-key --from-literal=value="your_mistral_api_key"
+toolforge envvars create SECRET_KEY "$(python3 -c 'import secrets; print(secrets.token_hex(64))')"
+toolforge envvars create DATABASE_URL "mysql+pymysql://s12345:password@tools.db.svc.wikimedia.cloud/s12345__profile_creator_nlwiki"
+toolforge envvars create OAUTH_CLIENT_ID "your_client_id"
+toolforge envvars create OAUTH_CLIENT_SECRET "your_client_secret"
+toolforge envvars create OAUTH_REDIRECT_URI "https://profile-creator-nlwiki.toolforge.org/oauth-callback"
+toolforge envvars create MISTRAL_API_KEY "your_mistral_api_key"
 ```
 
 If you do not have a Mistral API key yet, skip that last line. The app works without it — LLM-based suggestions will be disabled.
 
-Verify all secrets are stored:
+Verify all envvars are stored:
 
 ```bash
-toolforge secrets list
+toolforge envvars list
 ```
 
-You should see `secret-key`, `database-url`, `oauth-client-id`, `oauth-client-secret`, `oauth-redirect-uri`, and (optionally) `mistral-api-key`.
+You should see `SECRET_KEY`, `DATABASE_URL`, `OAUTH_CLIENT_ID`, `OAUTH_CLIENT_SECRET`, `OAUTH_REDIRECT_URI`, and (optionally) `MISTRAL_API_KEY`.
 
 ### Step 7 — Configure the app
 
-Edit the community configuration block at the top of `app.py`. This is the only section you should need to change:
-
-```python
-HOME_WIKI              = "nlwiki"            # dbname of the primary wiki
-HOME_WIKI_URL          = "https://nl.wikipedia.org"
-HOME_WIKI_LABEL        = "nl.wikipedia.org · Wikimedia Nederland"  # shown on the card footer
-EVENT_NAME             = "Wall of Faces 2026"   # shown on the card footer
-EVENT_COMMONS_CATEGORY = "Wikimedia_Event_2026" # Commons category for event photos
-SUBMISSION_DEADLINE    = "2026-05-01"           # informational; shown to users
-ADMIN_USERS            = ["Effeietsanders"]  # who can access /admin
-```
-
-Set `ADMIN_USERS` to your own Wikimedia username so you can access the admin panel after deployment.
-
-The snapshot directory defaults to `/data/project/profile-creator-nlwiki/snapshots` but can be overridden via the `SNAPSHOT_ROOT` environment variable. The simplest approach on Toolforge is to set it to the directory you created in step 5:
+Open `app.py` in a text editor:
 
 ```bash
-export SNAPSHOT_ROOT=/data/tool-profile-creator-nlwiki/snapshots
+nano ~/wall-of-faces/app.py
 ```
 
-Or add it to `~/wall-of-faces/.env` if you prefer to keep it in the project.
+The community configuration block is at the very top of the file. It looks like this — adjust the values for your event:
+
+```python
+TOOL_NAME              = "profile-creator-nlwiki"
+HOME_WIKI              = "nlwiki"
+HOME_WIKI_URL          = "https://nl.wikipedia.org"
+HOME_WIKI_LABEL        = "nl.wikipedia.org · Nederlandstalige Wikipedia"
+EVENT_NAME             = "Wall of Faces 2026"
+EVENT_COMMONS_CATEGORY = "Wikimedia_Event_2026"
+SUBMISSION_DEADLINE    = "2026-05-01"
+ADMIN_USERS            = ["Effeietsanders"]
+```
+
+Save and exit nano: press `Ctrl+X`, then `Y`, then `Enter` twice (once to confirm the filename, once to confirm the file format).
+
+Also store the snapshot directory path as an envvar (use the directory you created in step 5):
+
+```bash
+toolforge envvars create SNAPSHOT_ROOT "/data/tool-profile-creator-nlwiki/snapshots"
+```
 
 ### Step 8 — Initialise the database
 
@@ -350,8 +358,17 @@ If you see an error about the database connection, double-check the `database-ur
 
 ### Step 9 — Start the webservice
 
+First, create the symlink that Toolforge's webservice wrapper expects:
+
 ```bash
-cd ~/wall-of-faces
+mkdir -p ~/www/python
+ln -s ~/wall-of-faces ~/www/python/src
+```
+
+Then start the webservice from the home directory:
+
+```bash
+cd ~
 webservice --backend=kubernetes python3.11 start
 ```
 
