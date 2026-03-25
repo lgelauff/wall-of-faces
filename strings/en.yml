@@ -29,6 +29,17 @@ gather.llm_consent_body: >
 gather.llm_consent_yes: "Yes, use AI analysis"
 gather.llm_consent_no: "No, skip AI analysis"
 gather.start: Collect data
+gather.peek: "Look at results so far →"
+gather.step_start: "Starting…"
+gather.step_accounts: "Fetching account information…"
+gather.step_wikis: "Identifying active wikis…"
+gather.step_avatars: "Looking for profile pictures…"
+gather.step_pages: "Reading user pages…"
+gather.step_barnstars: "Detecting barnstars…"
+gather.step_llm: "Running AI analysis…"
+gather.step_rights: "Fetching user rights…"
+gather.step_finishing: "Finishing up…"
+gather.expected_duration: "Takes {min} minutes on average — you can close this page and come back later."
 
 # ── Buffet screen ───────────────────────────────────────────────
 buffet.title: Build your card

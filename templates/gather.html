@@ -37,7 +37,11 @@
     <div class="progress-track">
       <div class="progress-fill" id="progress-fill"></div>
     </div>
+    <p id="step-label" class="gather-step-label"></p>
     <p id="duration-hint" class="gather-status-line" style="font-size:0.85rem;color:#54595d;margin-top:0.5rem"></p>
+    <p style="margin-top:1rem">
+      <a class="btn btn--secondary" id="btn-peek" href="/buffet">{{ t('gather.peek') }}</a>
+    </p>
   </div>
 
   {# Status line (queue position, error) #}
@@ -55,7 +59,18 @@
   "queue_position":      {{ t('gather.queue_position')      | tojson }},
   "queue_position_many": {{ t('gather.queue_position_many') | tojson }},
   "error":               {{ t('gather.error')               | tojson }},
-  "expected_duration":   {{ t('gather.expected_duration')   | tojson }}
+  "expected_duration":   {{ t('gather.expected_duration')   | tojson }},
+  "steps": [
+    [0,  {{ t('gather.step_start')     | tojson }}],
+    [5,  {{ t('gather.step_accounts')  | tojson }}],
+    [15, {{ t('gather.step_wikis')     | tojson }}],
+    [20, {{ t('gather.step_avatars')   | tojson }}],
+    [35, {{ t('gather.step_pages')     | tojson }}],
+    [55, {{ t('gather.step_barnstars') | tojson }}],
+    [70, {{ t('gather.step_llm')       | tojson }}],
+    [85, {{ t('gather.step_rights')    | tojson }}],
+    [95, {{ t('gather.step_finishing') | tojson }}]
+  ]
 }
 </script>
 {% endblock %}

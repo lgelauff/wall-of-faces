@@ -22,6 +22,7 @@
   const elStatusLine   = document.getElementById('status-line');
 
   const elDurationHint = document.getElementById('duration-hint');
+  const elStepLabel    = document.getElementById('step-label');
 
   const elBtnConsentYes = document.getElementById('btn-consent-yes');
   const elBtnConsentNo  = document.getElementById('btn-consent-no');
@@ -40,6 +41,13 @@
 
   function setProgress(pct) {
     elProgressFill.style.width = pct + '%';
+    // Find the last step whose threshold is <= current progress
+    const steps = i18n.steps || [];
+    let label = '';
+    for (const [threshold, text] of steps) {
+      if (pct >= threshold) label = text;
+    }
+    if (elStepLabel) elStepLabel.textContent = label;
   }
 
   // ── Render state ──────────────────────────────────────────────────────────
@@ -80,7 +88,8 @@
         elDurationHint.textContent = i18n.expected_duration.replace('{min}', mins);
       }
 
-      // Redirect to buffet as soon as gather is running — partial results shown there.
+      // Auto-redirect to buffet once gather is running (partial results shown there).
+      // While still queued, the user can already click the peek button manually.
       if (status === 'running') {
         stopPolling();
         setTimeout(() => { window.location.href = '/buffet'; }, 300);

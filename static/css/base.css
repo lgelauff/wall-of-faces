@@ -594,3 +594,12 @@ textarea { resize: vertical; }
   font-size: 0.9rem;
   line-height: 1.5;
 }
+
+/* ── Gather step label ────────────────────────────────────────────────────── */
+
+.gather-step-label {
+  font-size: 0.85rem;
+  color: #54595d;
+  margin: 0.35rem 0 0;
+  min-height: 1.2em;
+}

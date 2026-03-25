@@ -30,6 +30,16 @@ gather.llm_consent_body: >
 gather.llm_consent_yes: "Ja, gebruik AI-analyse"
 gather.llm_consent_no: "Nee, sla AI-analyse over"
 gather.start: Gegevens ophalen
+gather.peek: "Bekijk alvast de resultaten →"
+gather.step_start: "Bezig met starten…"
+gather.step_accounts: "Accountgegevens ophalen…"
+gather.step_wikis: "Actieve wiki's bepalen…"
+gather.step_avatars: "Profielfoto's zoeken…"
+gather.step_pages: "Gebruikerspagina's lezen…"
+gather.step_barnstars: "Barnsterren detecteren…"
+gather.step_llm: "AI-analyse uitvoeren…"
+gather.step_rights: "Gebruikersrechten ophalen…"
+gather.step_finishing: "Afronden…"
 
 # ── Buffet screen ───────────────────────────────────────────────
 buffet.title: Stel je kaart samen
