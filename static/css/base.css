@@ -551,3 +551,35 @@ textarea { resize: vertical; }
 .prose h2 { font-size: 1.15rem; margin-top: 2rem; margin-bottom: 0.5rem; font-weight: 600; }
 .prose p  { margin: 0 0 1rem; }
 .prose ul { margin: 0 0 1rem; padding-left: 1.5rem; }
+
+
+/* ── Gathering progress banner ────────────────────────────────────────────── */
+
+.gathering-banner {
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  background: #eaf3fb;
+  border: 1px solid #c8dff0;
+  border-radius: 4px;
+}
+
+.gathering-banner__bar {
+  height: 6px;
+  background: #d0e6f5;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.gathering-banner__fill {
+  height: 100%;
+  background: #3680b0;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.gathering-banner__label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #3a6080;
+}

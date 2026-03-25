@@ -601,6 +601,8 @@ def _register_routes(app: Flask) -> None:  # noqa: C901 (intentionally long)
             config_home_wiki   = home_wiki,
             profile_home_wiki  = profile_wiki,
             profile_home_wiki_url = dbname_to_url(profile_wiki) or '',
+            gathering          = profile.gather_status in ('queued', 'running'),
+            gather_progress    = profile.gather_progress or 0,
         )
 
     @app.get('/card')

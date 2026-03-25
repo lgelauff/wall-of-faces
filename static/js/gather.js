@@ -80,11 +80,16 @@
         elDurationHint.textContent = i18n.expected_duration.replace('{min}', mins);
       }
 
-      startPolling();
+      // Redirect to buffet as soon as gather is running — partial results shown there.
+      if (status === 'running') {
+        stopPolling();
+        setTimeout(() => { window.location.href = '/buffet'; }, 300);
+      } else {
+        startPolling();
+      }
     } else if (status === 'done') {
       stopPolling();
-      setStatus(i18n.done);
-      setTimeout(() => { window.location.href = '/buffet'; }, 800);
+      setTimeout(() => { window.location.href = '/buffet'; }, 300);
     }
   }
 

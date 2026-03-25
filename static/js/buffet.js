@@ -317,6 +317,37 @@
     });
   }
 
+  // ── Gather-progress polling ───────────────────────────────────────────────
+  // If gather is still running when the buffet page loads, poll every 3 s.
+  // Once gather is done (status 'done' or 'error'), reload the page once so
+  // the user sees the final full set of suggestions.
+
+  const elBanner = document.getElementById('gathering-banner');
+  if (elBanner) {
+    let gatherPollTimer = null;
+
+    function updateBanner(pct) {
+      const fill = elBanner.querySelector('.gathering-banner__fill');
+      if (fill) fill.style.width = pct + '%';
+    }
+
+    async function pollGatherStatus() {
+      try {
+        const resp = await fetch('/api/gather-status');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (data.status === 'done' || data.status === 'error') {
+          clearInterval(gatherPollTimer);
+          window.location.reload();
+        } else if (data.progress != null) {
+          updateBanner(data.progress);
+        }
+      } catch (_) { /* network error — keep polling */ }
+    }
+
+    gatherPollTimer = setInterval(pollGatherStatus, 3000);
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────
 
   loadImages();

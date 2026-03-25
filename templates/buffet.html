@@ -29,6 +29,15 @@
 <div class="page">
   <h1 class="page__title">{{ t('buffet.title') }}</h1>
 
+  {% if gathering %}
+  <div class="gathering-banner" id="gathering-banner" data-progress="{{ gather_progress }}">
+    <div class="gathering-banner__bar">
+      <div class="gathering-banner__fill" style="width: {{ gather_progress }}%"></div>
+    </div>
+    <p class="gathering-banner__label">{{ t('buffet.gathering') }}</p>
+  </div>
+  {% endif %}
+
   {# Tab navigation #}
   <div class="buffet-tabs" role="tablist">
     <button class="buffet-tab is-active" role="tab" data-panel="panel-explanation">

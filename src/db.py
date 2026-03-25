@@ -179,30 +179,54 @@ class SnapshotQueue(db.Model):  # type: ignore[misc, name-defined]
 
 def recover_stale_jobs() -> None:
     """
-    Reset jobs that were in-flight when the process last died.
+    Recover jobs that were in-flight when the process last died.
 
     Called once inside create_app() after db.init_app(app), within an explicit
     app context.  Must run before start_coordinator().
 
-    GatherQueue:   waiting/running rows are deleted (gather will be re-triggered
-                   by the user when they see the 'idle' prompt).
-    SnapshotQueue: waiting/running rows are marked 'error' rather than deleted —
+    GatherQueue:   stale waiting/running rows are replaced with fresh 'waiting'
+                   rows so the coordinator automatically re-runs the gather.
+                   UserProfile.gather_status stays 'queued' and gather_progress
+                   is reset to 0 — the user sees the progress bar resume rather
+                   than the "start gathering" prompt.
+    SnapshotQueue: waiting/running rows are marked 'error' rather than retried —
                    partial snapshot directories may exist on disk and should not
                    be silently abandoned (the admin can re-trigger).
-    UserProfile:   any profile stuck in 'running' or 'queued' is reset to 'idle'
-                   so the user sees the "start gathering" prompt again.
+    UserProfile:   profiles stuck in 'running' are treated the same as 'queued'
+                   (gather_status='running' is currently never written, but
+                   handled here for safety).
     """
-    (
-        db.session.query(UserProfile)
-        .filter(UserProfile.gather_status.in_(['running', 'queued']))
-        .update({'gather_status': 'idle', 'gather_progress': 0},
-                synchronize_session=False)
-    )
+    # Find usernames that need re-queueing before touching the queue table.
+    stale_usernames = [
+        row.username
+        for row in (
+            db.session.query(UserProfile.username)
+            .filter(UserProfile.gather_status.in_(['running', 'queued']))
+            .all()
+        )
+    ]
+
+    # Reset progress to 0 so the progress bar starts fresh; keep status='queued'
+    # so the gather page still shows the progress bar (not the start button).
+    if stale_usernames:
+        (
+            db.session.query(UserProfile)
+            .filter(UserProfile.username.in_(stale_usernames))
+            .update({'gather_status': 'queued', 'gather_progress': 0},
+                    synchronize_session=False)
+        )
+
+    # Replace old queue rows with fresh 'waiting' entries (FIFO order preserved
+    # via created_at — new rows get utcnow() so they land at the back of any
+    # queue that was already building up from other users).
     (
         db.session.query(GatherQueue)
         .filter(GatherQueue.status.in_(['running', 'waiting']))
         .delete(synchronize_session=False)
     )
+    for username in stale_usernames:
+        db.session.add(GatherQueue(username=username))
+
     (
         db.session.query(SnapshotQueue)
         .filter(SnapshotQueue.status.in_(['running', 'waiting']))

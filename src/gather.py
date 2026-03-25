@@ -168,7 +168,11 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_progress = 5
     db.session.commit()
 
-    cache_rows: list[GatherCache] = []
+    def _flush(rows: list[GatherCache]) -> None:
+        """Write rows to DB immediately and commit."""
+        if rows:
+            db.session.bulk_save_objects(rows)
+            db.session.commit()
 
     # Skin and gender are fetched at OAuth time and stored on the profile.
     # Emit them here as userbox suggestions so they appear in the Infobox tab.
@@ -189,9 +193,7 @@ def _run(app: Flask, username: str) -> None:
         pref_userboxes.append({'icon': '♂', 'label': 'This user prefers to be described as male'})
     elif profile.wiki_gender == 'female':
         pref_userboxes.append({'icon': '♀', 'label': 'This user prefers to be described as female'})
-    cache_rows.extend(_cache_items(
-        user_id, 'identity', 'userbox', pref_userboxes, source='api',
-    ))
+    _flush(_cache_items(user_id, 'identity', 'userbox', pref_userboxes, source='api'))
 
     # ── Step 2: global account info + per-wiki edit counts (5 → 15%) ─────────
     try:
@@ -266,11 +268,13 @@ def _run(app: Flask, username: str) -> None:
             seen_avatars.add(fn)
             unique_avatars.append(fn)
 
-    cache_rows.extend(_cache_items(
+    # Keep avatars in memory until after barnstar detection — barnstar images
+    # need to be filtered out before writing to avoid showing them as avatar options.
+    avatar_rows = _cache_items(
         user_id, 'identity', 'avatar',
         [{'filename': fn} for fn in unique_avatars],
         source='api',
-    ))
+    )
 
     profile.gather_progress = 35
     db.session.commit()
@@ -308,20 +312,18 @@ def _run(app: Flask, username: str) -> None:
         all_wikitext_pages.extend(entry['subpages'])
 
     barnstars = detect_barnstars(all_wikitext_pages)
-    cache_rows.extend(_cache_items(
-        user_id, 'achievements', 'barnstar', barnstars, source='api',
-    ))
 
     # Remove barnstar images from avatar candidates — userpage image scraping
     # picks up all embedded images, including barnstar icons.
     barnstar_filenames = {bs['filename'] for bs in barnstars if bs.get('filename')}
-    cache_rows = [
-        row for row in cache_rows
-        if not (
-            row.item_type == 'avatar'
-            and json.loads(row.payload).get('filename') in barnstar_filenames
-        )
+    avatar_rows = [
+        row for row in avatar_rows
+        if json.loads(row.payload).get('filename') not in barnstar_filenames
     ]
+
+    # Write avatars and barnstars together now that the filter is applied.
+    _flush(avatar_rows)
+    _flush(_cache_items(user_id, 'achievements', 'barnstar', barnstars, source='api'))
 
     profile.gather_progress = 70
     db.session.commit()
@@ -336,7 +338,7 @@ def _run(app: Flask, username: str) -> None:
                 continue
 
             userbox_suggestions = extract_userbox_suggestions(wikitext)
-            cache_rows.extend(_cache_items(
+            _flush(_cache_items(
                 user_id, 'identity', 'userbox',
                 userbox_suggestions, source='llm',
             ))
@@ -346,7 +348,7 @@ def _run(app: Flask, username: str) -> None:
             # card renderer can add the appropriate interwiki prefix.
             for item in proud_of_suggestions:
                 item.setdefault('wiki', dbname)
-            cache_rows.extend(_cache_items(
+            _flush(_cache_items(
                 user_id, 'achievements', 'proud_of',
                 proud_of_suggestions, source='llm',
             ))
@@ -381,7 +383,7 @@ def _run(app: Flask, username: str) -> None:
         commons_edits=commons_edits,
         wikidata_edits=wikidata_edits,
     )
-    cache_rows.extend(_cache_items(
+    _flush(_cache_items(
         user_id, 'achievements', 'badge',
         [{'id': b.id, 'name': b.name, 'icon': b.icon, 'color_class': b.color_class}
          for b in badges],
@@ -391,8 +393,7 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_progress = 95
     db.session.commit()
 
-    # ── Step 9: write cache, finalise (95 → 100%) ────────────────────────────
-    db.session.bulk_save_objects(cache_rows)
+    # ── Step 9: finalise (95 → 100%) ─────────────────────────────────────────
     profile.gather_status    = 'done'
     profile.gather_error     = None
     profile.last_gathered_at = utcnow()

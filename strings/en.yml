@@ -32,6 +32,7 @@ gather.start: Collect data
 
 # ── Buffet screen ───────────────────────────────────────────────
 buffet.title: Build your card
+buffet.gathering: "Still gathering data — results will appear as they come in. Reload to refresh."
 buffet.explanation: Explanation
 buffet.infobox: Infobox
 buffet.content: Content
