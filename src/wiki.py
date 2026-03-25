@@ -12,6 +12,7 @@ Functions called by gather.py:
     get_wikitext(wiki_url, title)                 → str
     get_userpage_images(wiki_url, username)       → list[str]
     get_commons_category_images(username)         → list[str]
+    get_commons_file_signals(filenames)           → dict[str, CommonsFileSignals]
     get_commons_thumbnails(filenames, width)      → dict[str, str]
     get_wikidata_p18(wiki_url, username)          → str | None
     dbname_to_url(dbname)                         → str
@@ -379,6 +380,51 @@ def get_commons_category_images(username: str, limit: int = 10) -> list[str]:
         except Exception:
             continue
     return []
+
+
+def get_commons_file_signals(filenames: list[str]) -> dict[str, list[str]]:
+    """
+    Return Commons categories for each file in a single batched API call.
+
+    Returns {filename: [category_name, ...]} (without 'Category:' prefix).
+    Missing files are omitted.  At most 50 filenames per call.
+
+    Used by gather.py to score avatar candidates.  The cross-user usage
+    signal (how many distinct users in our own tool have this file as an
+    avatar candidate) is queried from our local GatherCache in gather.py —
+    no extra API call needed.
+
+    Note on SDC: `depicts: Q5` (human) would be a stronger portrait signal
+    but requires a separate Wikibase call per file with sparse coverage.
+    """
+    if not filenames:
+        return {}
+    titles = '|'.join(f'File:{fn}' for fn in filenames[:50])
+    try:
+        data = _api(_COMMONS_URL, {
+            'action':        'query',
+            'prop':          'categories',
+            'titles':        titles,
+            'cllimit':       '30',
+            'clshow':        '!hidden',
+            'format':        'json',
+            'formatversion': '2',
+        })
+    except Exception:
+        return {}
+
+    result: dict[str, list[str]] = {}
+    for page in data.get('query', {}).get('pages', []):
+        title = page.get('title', '')
+        if not title.startswith('File:'):
+            continue
+        fn = title[len('File:'):]
+        result[fn] = [
+            c['title'].removeprefix('Category:')
+            for c in page.get('categories', [])
+            if c.get('title', '').startswith('Category:')
+        ]
+    return result
 
 
 # ── Thumbnail URL cache ───────────────────────────────────────────────────────

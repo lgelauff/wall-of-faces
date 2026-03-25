@@ -277,6 +277,71 @@ def _run(app: Flask, username: str) -> None:
             seen_avatars.add(fn)
             unique_avatars.append(fn)
 
+    # Sort by likelihood of being a profile photo.
+    # Two signals:
+    #   1. Commons categories (one API call) — portrait/barnstar/icon etc.
+    #   2. Cross-user count from our own GatherCache (one DB query) — if 2+
+    #      distinct users in this tool share the same avatar candidate filename
+    #      it is almost certainly a shared template asset, not a personal photo.
+    #      Current user's rows not yet written, so only other users are counted.
+    file_cats: dict[str, list[str]] = wiki_mod.get_commons_file_signals(unique_avatars)
+
+    candidate_payloads = [
+        json.dumps({'filename': fn}, ensure_ascii=True) for fn in unique_avatars
+    ]
+    from sqlalchemy import func as _func
+    cross_user_rows = (
+        db.session.query(GatherCache.payload,
+                         _func.count(GatherCache.user_id.distinct()).label('n'))
+        .filter(
+            GatherCache.item_type == 'avatar',
+            GatherCache.payload.in_(candidate_payloads),
+        )
+        .group_by(GatherCache.payload)
+        .all()
+    )
+    cross_user_counts: dict[str, int] = {
+        json.loads(row.payload)['filename']: row.n
+        for row in cross_user_rows
+    }
+
+    def _avatar_score(fn: str) -> int:
+        ext         = fn.rsplit('.', 1)[-1].lower() if '.' in fn else ''
+        cats        = ' '.join(file_cats.get(fn, [])).lower()
+        other_users = cross_user_counts.get(fn, 0)
+        score       = 0
+
+        # ── Strongest signal: Wikidata P18 explicitly links this file ─────
+        if fn == p18:                                   score += 60
+
+        # ── Category: portrait / person photography ───────────────────────
+        if 'self-portrait' in cats:                     score += 55
+        if 'photograph' in cats and 'people' in cats:   score += 50
+        if 'portrait' in cats:                          score += 45
+        if 'user' in cats and 'wikipedia' in cats:      score += 20
+
+        # ── Category: clearly NOT a portrait ─────────────────────────────
+        if 'barnstar' in cats:                          score -= 60
+        if 'award' in cats:                             score -= 40
+        if 'icon' in cats:                              score -= 40
+        if 'logo' in cats:                              score -= 40
+        if 'map' in cats:                               score -= 35
+        if 'flag' in cats:                              score -= 35
+        if 'symbol' in cats:                            score -= 25
+        if 'template' in cats:                          score -= 25
+
+        # ── Cross-user usage in this tool ────────────────────────────────
+        if other_users >= 5:                            score -= 50
+        elif other_users >= 2:                          score -= 30
+
+        # ── File extension (tiebreaker only) ─────────────────────────────
+        if ext in ('jpg', 'jpeg'):                      score += 10
+        if ext == 'svg':                                score -= 10
+
+        return score
+
+    unique_avatars.sort(key=_avatar_score, reverse=True)
+
     # Keep avatars in memory until after barnstar detection — barnstar images
     # need to be filtered out before writing to avoid showing them as avatar options.
     avatar_rows = _cache_items(
@@ -420,6 +485,17 @@ def _run(app: Flask, username: str) -> None:
 
     _step(9, 'finalise')
     # ── Step 9: finalise (95 → 100%) ─────────────────────────────────────────
+
+    # Auto-accept detected barnstars into profile.barnstars so they appear on
+    # the card immediately without the user having to click "Accept" in the
+    # buffet.  Only done on the first gather (profile.barnstars is None) to
+    # avoid overwriting choices the user made on a previous gather.
+    if barnstars and profile.barnstars is None:
+        profile.barnstars = json.dumps(
+            [{'filename': bs['filename'], 'name': bs['name']} for bs in barnstars],
+            ensure_ascii=True,
+        )
+
     profile.gather_status    = 'done'
     profile.gather_error     = None
     profile.last_gathered_at = utcnow()

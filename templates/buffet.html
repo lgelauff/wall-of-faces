@@ -196,7 +196,7 @@
               <div class="buffet-item__actions">
                 <button class="btn btn--small {% if is_accepted %}btn--secondary{% else %}btn--primary{% endif %}"
                         data-action="toggle-userbox">
-                  {{ t('buffet.accept') if not is_accepted else t('buffet.reject') }}
+                  {{ t('buffet.accept_userbox') if not is_accepted else t('buffet.reject') }}
                 </button>
               </div>
             </div>
@@ -210,6 +210,11 @@
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
       {% endif %}
+    </div>
+
+    <div class="buffet-panel-nav">
+      <button class="btn btn--secondary" data-goto-panel="panel-explanation">← {{ t('buffet.explanation') }}</button>
+      <button class="btn btn--primary"   data-goto-panel="panel-content">{{ t('buffet.content') }} →</button>
     </div>
 
   </div>
@@ -300,6 +305,11 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <div class="buffet-panel-nav">
+      <button class="btn btn--secondary" data-goto-panel="panel-infobox">← {{ t('buffet.infobox') }}</button>
+      <button class="btn btn--primary"   data-goto-panel="panel-accomplishments">{{ t('buffet.accomplishments') }} →</button>
     </div>
 
   </div>
@@ -420,6 +430,10 @@
                style="flex:1">
         <button class="btn btn--secondary btn--small" id="btn-add-proud-of">+</button>
       </div>
+    </div>
+
+    <div class="buffet-panel-nav">
+      <button class="btn btn--secondary" data-goto-panel="panel-content">← {{ t('buffet.content') }}</button>
     </div>
 
   </div>

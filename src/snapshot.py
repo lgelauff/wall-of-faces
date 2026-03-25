@@ -65,9 +65,9 @@ _ALLOWED_IMAGE_HOST = 'upload.wikimedia.org'
 # At 300 dpi, A5 column width (~70mm) needs ~828px, so 400–600px is generous
 # for a 35–60mm display width. Barnstars and proud_of thumbnails are small.
 _WIDTHS = {
-    'avatar':    400,
+    'avatar':    600,   # 175px CSS = 46mm on A5; ~550px at 300dpi → 600px with headroom
     'biography': 600,
-    'barnstar':  150,
+    'barnstar':  200,   # 34px CSS = 9mm on A5; ~105px at 300dpi → 200px with headroom
     'proud_of':  200,
 }
 

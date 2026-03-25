@@ -304,6 +304,16 @@ body {
 .buffet-panel { display: none; }
 .buffet-panel.is-active { display: block; }
 
+.buffet-panel-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eaecf0;
+}
+.buffet-panel-nav .btn:only-child { margin-left: auto; }
+
 .buffet-section     { margin-bottom: 2rem; }
 .buffet-section__title {
   font-size: 1rem;
