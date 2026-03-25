@@ -128,6 +128,16 @@ Replace `YourWikimediaName` with any username you want to test with (it does not
 
 You will be redirected to the home page and logged in. From there you can explore the gather flow, buffet, and card preview.
 
+### Updating after a git pull
+
+After pulling new code, run:
+
+```bash
+uv sync
+```
+
+Then restart the dev server. Database migrations are applied automatically on startup — no manual migration step needed.
+
 ### Local limitations
 
 The following features behave differently locally compared to production:
@@ -342,19 +352,9 @@ toolforge envvars create SNAPSHOT_ROOT "/data/tool-profile-creator-nlwiki/snapsh
 
 ### Step 8 — Initialise the database
 
-For a fresh deployment, use `db stamp head`. Flask-Session creates all tables automatically when the app starts (via `db.create_all()`), so Alembic does not need to run the migration script — it just needs to record the current state:
+Nothing to do here. When the webservice starts for the first time, `wsgi.py` detects that no migration history exists and stamps the database as current automatically. Subsequent startups apply any pending migrations the same way.
 
-```bash
-cd ~/wall-of-faces
-SNAPSHOT_ROOT=/data/tool-profile-creator-nlwiki/snapshots \
-uv run flask --app wsgi:application db stamp head
-```
-
-You should see a line ending in `-> (head)` with no errors.
-
-If you see an error about the database connection, double-check the `database-url` secret and that your database exists in Toolsadmin.
-
-> **For future updates:** when new migrations are added, use `flask db upgrade` instead. That command only applies migrations that are not yet recorded in the database, so it is safe to run after any code update.
+If you see a database connection error in the logs after starting, double-check the `DATABASE_URL` envvar and that your database exists.
 
 ### Step 9 — Start the webservice
 
@@ -405,16 +405,9 @@ After pushing new code to GitHub, SSH into Toolforge and run:
 
 ```bash
 become profile-creator-nlwiki
-cd ~/wall-of-faces
-git pull
-uv pip install --python ~/www/python/venv/bin/python -r requirements.txt
-uv run flask --app wsgi:application db upgrade
-cd ~
-webservice --backend=kubernetes python3.13 restart
+bash ~/wall-of-faces/deploy.sh
 ```
 
-Notes:
-- `uv pip install` is safe to run even if there are no new dependencies
-- `db upgrade` is safe to run even if there are no new migrations
-- `webservice restart` must be run from the home directory (`~`), not from inside the repo
-- Check `healthz` afterwards to confirm it came back up cleanly
+That's it. The script pulls the latest code, updates dependencies, and restarts the service. Database migrations are applied automatically when the service starts — no manual migration step needed.
+
+Check `healthz` afterwards to confirm it came back up cleanly.
