@@ -179,7 +179,8 @@ def create_app() -> Flask:
             'card_theme':  app.config['CARD_THEME'],
             'event_name':  app.config['EVENT_NAME'],
             'deadline':    app.config['SUBMISSION_DEADLINE'],
-            'is_admin':    session.get('username') in app.config['ADMIN_USERS'],
+            'is_admin':       session.get('username') in app.config['ADMIN_USERS'],
+            'current_endpoint': request.endpoint,
         }
 
     @app.template_filter('from_json')
