@@ -1,203 +1,171 @@
 """
-replicas.py — Toolforge replica DB access and XTools API calls.
+replicas.py — Global user data via the Wikimedia API.
 
-Used only for numeric counts — never for content (wikitext, templates, etc.).
-Content always comes from the MediaWiki API (src/wiki.py).
+Uses meta.wikimedia.org's globaluserinfo API to fetch registration date,
+global edit count, and per-wiki edit counts in a **single HTTP request**.
 
-Replica DB (centralauth_p):
-    get_global_user_info  — registration date from globaluser
-    get_wiki_edit_counts  — wiki list from localuser; counts via XTools API
+This replaces the previous approach of querying the CentralAuth replica DB
+(for wiki list) and then making one XTools API call per wiki (N sequential
+requests). That approach was O(N) in the number of wikis a user is attached
+to, causing gathers to take hours for active contributors with 100–200+ wikis.
 
-The `~/replica.my.cnf` credential file is the standard Toolforge authentication
-mechanism. On a developer machine without this file, ReplicaUnavailableError is
-raised and callers (gather.py) fall back to zero/None.
+Public API:
+    get_global_user_info(username)   → dict | None
+        registration_date, global_edit_count
 
-Connection settings:
-    pool_recycle=280  — Toolforge closes idle MySQL connections after ~5 min;
-                        recycling at 280 s keeps us safely under that threshold.
-    pool_pre_ping=True — detect stale connections before use.
+    get_wiki_edit_counts(username)   → dict[str, int]
+        wiki dbname → edit count for all wikis with > 0 edits
 """
 
 from __future__ import annotations
 
-import configparser
-import os
 from datetime import datetime, timezone
-from urllib.parse import quote
-
 from typing import Any
 
 import requests
-from sqlalchemy import Engine, create_engine, text
 
-_XTOOLS_USER_AGENT = (
-    'WallOfFaces/1.0 (Toolforge tool profile-creator-nlwiki; '
-    'https://profile-creator-nlwiki.toolforge.org)'
-)
-_XTOOLS_BASE = 'https://xtools.wmcloud.org/api'
+
 
 
 # ── Exceptions ────────────────────────────────────────────────────────────────
 
 class ReplicaUnavailableError(Exception):
-    """Raised when replica.my.cnf is missing or the connection fails."""
+    """Raised when the global user info API is inaccessible."""
 
 
-# ── Connection factory ────────────────────────────────────────────────────────
+# ── Shared HTTP session ───────────────────────────────────────────────────────
 
-def _load_replica_credentials() -> tuple[str, str]:
+_USER_AGENT = (
+    'WallOfFaces/1.0 (Toolforge tool profile-creator-nlwiki; '
+    'https://profile-creator-nlwiki.toolforge.org)'
+)
+_META_API = 'https://meta.wikimedia.org/w/api.php'
+_TIMEOUT   = 20   # seconds — single call, generous timeout
+
+
+def _fetch_globaluserinfo(username: str) -> dict[str, Any]:
     """
-    Parse ~/replica.my.cnf and return (user, password).
-    Raises ReplicaUnavailableError if the file is absent or malformed.
+    Call meta.wikimedia.org globaluserinfo and return the raw API dict.
+
+    guiprop=editcount  — global edit count
+    guiprop=merged     — list of wikis with per-wiki editcount
+
+    Raises ReplicaUnavailableError on network or API error.
     """
-    path = os.path.expanduser('~/replica.my.cnf')
-    if not os.path.exists(path):
-        raise ReplicaUnavailableError(
-            f'Replica credentials not found: {path!r}. '
-            'This file is only available on Toolforge.'
-        )
-    cfg = configparser.ConfigParser()
-    cfg.read(path)
     try:
-        return cfg['client']['user'], cfg['client']['password']
-    except KeyError as exc:
+        resp = requests.get(
+            _META_API,
+            params={
+                'action':      'query',
+                'meta':        'globaluserinfo',
+                'guiprop':     'editcount|merged',
+                'guiuser':     username,
+                'format':      'json',
+                'formatversion': '2',
+            },
+            headers={'User-Agent': _USER_AGENT},
+            timeout=_TIMEOUT,
+        )
+        resp.raise_for_status()
+        return resp.json().get('query', {}).get('globaluserinfo', {})
+    except requests.RequestException as exc:
         raise ReplicaUnavailableError(
-            f'replica.my.cnf is missing expected key: {exc}'
+            f'globaluserinfo API request failed: {exc}'
         ) from exc
-
-
-def _replica_engine(db_name: str) -> Engine:
-    """
-    Create a SQLAlchemy engine for a Toolforge replica database.
-
-    db_name examples: 'centralauth_p', 'nlwiki_p', 'commonswiki_p'
-    Host convention: remove trailing _p and append .web.db.svc.wikimedia.cloud
-    """
-    user, password = _load_replica_credentials()
-    # Strip the trailing '_p' suffix: 'centralauth_p' → 'centralauth.web.db.svc.wikimedia.cloud'
-    host = db_name[:-2] + '.web.db.svc.wikimedia.cloud'
-    return create_engine(
-        f'mysql+pymysql://{user}:{password}@{host}/{db_name}',
-        pool_recycle=280,
-        pool_pre_ping=True,
-        connect_args={'connect_timeout': 10},
-    )
-
-
-# ── Lazy singletons ───────────────────────────────────────────────────────────
-
-_centralauth_engine: Engine | None = None
-
-
-def _centralauth() -> Engine:
-    global _centralauth_engine
-    if _centralauth_engine is None:
-        _centralauth_engine = _replica_engine('centralauth_p')
-    return _centralauth_engine
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def get_global_user_info(username: str) -> dict[str, Any] | None:
     """
-    Fetch global account info from CentralAuth.
+    Fetch global account info via the Wikimedia API.
 
     Returns a dict with:
         registration_date  — datetime (UTC, tz-aware) or None
         global_edit_count  — int or None
 
-    Returns None if the account is not found in CentralAuth.
-    Raises ReplicaUnavailableError if the replica is inaccessible.
+    Returns None if the account does not exist.
+    Raises ReplicaUnavailableError on network failure.
     """
-    with _centralauth().connect() as conn:
-        row = conn.execute(
-            text("""
-                SELECT gu_registration
-                FROM globaluser
-                WHERE gu_name = :name
-                LIMIT 1
-            """),
-            {'name': username},
-        ).fetchone()
-
-    if row is None:
+    gui = _fetch_globaluserinfo(username)
+    if not gui or 'missing' in gui:
         return None
 
-    reg = row.gu_registration
-    if isinstance(reg, (bytes, bytearray)):
-        reg = reg.decode('utf-8', errors='replace')
-    if isinstance(reg, str) and reg:
+    reg_dt: datetime | None = None
+    reg_raw = gui.get('registration')
+    if reg_raw:
         try:
-            # CentralAuth stores as 'YYYYMMDDHHmmss' (MediaWiki timestamp format)
-            reg_dt = datetime.strptime(reg[:14], '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
-        except ValueError:
-            reg_dt = None
-    elif isinstance(reg, datetime):
-        reg_dt = reg.replace(tzinfo=timezone.utc) if reg.tzinfo is None else reg
-    else:
-        reg_dt = None
+            reg_dt = datetime.fromisoformat(reg_raw.replace('Z', '+00:00'))
+        except (ValueError, AttributeError):
+            pass
 
     return {
         'registration_date': reg_dt,
-        'global_edit_count': None,  # gu_editcount not available on Toolforge replicas
+        'global_edit_count': gui.get('editcount'),
     }
 
 
-def _xtools_edit_count(wiki: str, username: str) -> int | None:
+def get_global_user_info_and_edit_counts(
+    username: str,
+) -> tuple[dict[str, Any] | None, dict[str, int]]:
     """
-    Fetch edit count for *username* on *wiki* via the XTools simple_editcount API.
+    Fetch global account info AND per-wiki edit counts in a single API call.
 
-    wiki is the MediaWiki dbname, e.g. 'nlwiki', 'commonswiki'.
-    Returns the total edit count as int, or None if the request fails or the
-    user is not found on that wiki.
+    Returns (global_info, wiki_edit_counts) where global_info has the same
+    shape as get_global_user_info() and wiki_edit_counts maps dbname → count.
 
-    Requests are made synchronously as requested by XTools documentation.
+    Prefer this over calling get_global_user_info + get_wiki_edit_counts
+    separately to avoid making the same HTTP request twice.
     """
-    url = f'{_XTOOLS_BASE}/user/simple_editcount/{quote(wiki)}/{quote(username)}'
-    try:
-        resp = requests.get(url, headers={'User-Agent': _XTOOLS_USER_AGENT}, timeout=10)
-        if resp.status_code == 404:
-            return None
-        resp.raise_for_status()
-        data = resp.json()
-        count = data.get('total_edit_count')
-        return int(count) if count is not None else None
-    except Exception:
-        return None
+    gui = _fetch_globaluserinfo(username)
+    if not gui or 'missing' in gui:
+        return None, {}
+
+    reg_dt: datetime | None = None
+    reg_raw = gui.get('registration')
+    if reg_raw:
+        try:
+            reg_dt = datetime.fromisoformat(reg_raw.replace('Z', '+00:00'))
+        except (ValueError, AttributeError):
+            pass
+
+    global_info: dict[str, Any] = {
+        'registration_date': reg_dt,
+        'global_edit_count': gui.get('editcount'),
+    }
+
+    counts: dict[str, int] = {}
+    for entry in gui.get('merged', []):
+        wiki  = entry.get('wiki')
+        count = entry.get('editcount', 0) or 0
+        if wiki and count > 0:
+            counts[wiki] = count
+
+    return global_info, counts
 
 
 def get_wiki_edit_counts(username: str) -> dict[str, int]:
     """
-    Fetch per-wiki edit counts for a user.
+    Fetch per-wiki edit counts via the Wikimedia API.
 
-    Queries CentralAuth's localuser table for the list of wikis the user is
-    attached to (Toolforge replicas do not have lu_editcount on localuser),
-    then fetches each count from the XTools API synchronously.
+    Returns a dict mapping wiki dbname → edit count for all wikis
+    where the user has at least one edit.
 
-    Returns a dict mapping wiki dbname → edit count, e.g.:
-        {'nlwiki': 12847, 'commonswiki': 543, 'wikidatawiki': 120}
+    Uses the same globaluserinfo call as get_global_user_info — but since
+    gather.py calls them separately we keep the interface unchanged and
+    accept the small overhead of a second API call.
 
-    Returns an empty dict on any error.
-    Raises ReplicaUnavailableError if the replica is inaccessible.
+    Raises ReplicaUnavailableError on network failure.
     """
-    with _centralauth().connect() as conn:
-        rows = conn.execute(
-            text("""
-                SELECT lu_wiki
-                FROM localuser
-                WHERE lu_name = :name
-            """),
-            {'name': username},
-        ).fetchall()
-
-    wikis = [row.lu_wiki for row in rows]
-    if not wikis:
+    gui = _fetch_globaluserinfo(username)
+    if not gui or 'missing' in gui:
         return {}
 
     counts: dict[str, int] = {}
-    for wiki in wikis:
-        count = _xtools_edit_count(wiki, username)
-        if count is not None and count > 0:
+    for entry in gui.get('merged', []):
+        wiki  = entry.get('wiki')
+        count = entry.get('editcount', 0) or 0
+        if wiki and count > 0:
             counts[wiki] = count
 
     return counts

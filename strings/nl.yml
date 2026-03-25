@@ -32,7 +32,7 @@ gather.llm_consent_no: "Nee, sla AI-analyse over"
 gather.start: Gegevens ophalen
 gather.peek: "Bekijk alvast de resultaten →"
 gather.step_start: "Bezig met starten…"
-gather.step_accounts: "Accountgegevens ophalen…"
+gather.step_accounts: "Bewerkingstelling per wiki ophalen — kan even duren bij veel wiki's…"
 gather.step_wikis: "Actieve wiki's bepalen…"
 gather.step_avatars: "Profielfoto's zoeken…"
 gather.step_pages: "Gebruikerspagina's lezen…"

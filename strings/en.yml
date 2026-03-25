@@ -31,7 +31,7 @@ gather.llm_consent_no: "No, skip AI analysis"
 gather.start: Collect data
 gather.peek: "Look at results so far →"
 gather.step_start: "Starting…"
-gather.step_accounts: "Fetching account information…"
+gather.step_accounts: "Fetching edit counts per wiki — may take a moment for users with many wikis…"
 gather.step_wikis: "Identifying active wikis…"
 gather.step_avatars: "Looking for profile pictures…"
 gather.step_pages: "Reading user pages…"

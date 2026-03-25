@@ -201,18 +201,15 @@ def _run(app: Flask, username: str) -> None:
     db.session.commit()
 
     # ── Step 2: global account info + per-wiki edit counts (5 → 15%) ─────────
+    # Single API call to meta.wikimedia.org — returns everything at once.
     try:
-        global_info = replicas.get_global_user_info(username)
+        global_info, wiki_edit_counts = replicas.get_global_user_info_and_edit_counts(username)
     except replicas.ReplicaUnavailableError:
-        global_info = None
-
-    registration_date   = global_info['registration_date']   if global_info else None
-    global_edit_count   = global_info['global_edit_count']   if global_info else None
-
-    try:
-        wiki_edit_counts = replicas.get_wiki_edit_counts(username)
-    except replicas.ReplicaUnavailableError:
+        global_info      = None
         wiki_edit_counts = {}
+
+    registration_date = global_info['registration_date'] if global_info else None
+    global_edit_count = global_info['global_edit_count'] if global_info else None
 
     # Update infobox fields
     if registration_date is not None:
