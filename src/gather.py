@@ -155,6 +155,9 @@ def _run(app: Flask, username: str) -> None:
     home_wiki     = app.config['HOME_WIKI']
     max_wikis     = app.config['GATHER_MAX_QUALIFYING_WIKIS']
 
+    def _step(n: int, label: str) -> None:
+        log.info('Gather [%s] step %d: %s', username, n, label)
+
     # ── Step 0: resolve profile ───────────────────────────────────────────────
     profile = UserProfile.query.filter_by(username=username).first()
     if profile is None:
@@ -162,6 +165,7 @@ def _run(app: Flask, username: str) -> None:
 
     user_id = profile.id
 
+    _step(1, 'clear cache')
     # ── Step 1: clear cache (0 → 5%) ─────────────────────────────────────────
     GatherCache.query.filter_by(user_id=user_id).delete()
     db.session.commit()
@@ -200,6 +204,7 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_status = 'running'
     db.session.commit()
 
+    _step(2, 'global account info + edit counts')
     # ── Step 2: global account info + per-wiki edit counts (5 → 15%) ─────────
     # Single API call to meta.wikimedia.org — returns everything at once.
     try:
@@ -226,6 +231,7 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_progress = 15
     db.session.commit()
 
+    _step(3, f'qualifying wikis from {len(wiki_edit_counts)} wikis')
     # ── Step 3: compute qualifying wikis (15 → 20%) ───────────────────────────
     home_edits = wiki_edit_counts.get(home_wiki, 0)
     threshold  = home_edits * 0.75 if home_edits else 0
@@ -243,6 +249,7 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_progress = 20
     db.session.commit()
 
+    _step(4, f'avatar candidates across {len(qualifying_wikis)} qualifying wikis')
     # ── Step 4: avatar candidates (20 → 35%) ─────────────────────────────────
     avatar_filenames: list[str] = []
 
@@ -281,6 +288,7 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_progress = 35
     db.session.commit()
 
+    _step(5, 'fetch userpages + talkpages + subpages')
     # ── Step 5: fetch userpages + talkpages + subpages (35 → 55%) ────────────
     # wikitext_by_wiki: {dbname: {'userpage': str, 'talkpage': str, 'subpages': [str]}}
     wikitext_by_wiki: dict[str, dict[str, Any]] = {}
@@ -306,6 +314,7 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_progress = 55
     db.session.commit()
 
+    _step(6, 'barnstar detection')
     # ── Step 6: barnstar detection (55 → 70%) ────────────────────────────────
     all_wikitext_pages: list[str] = []
     for entry in wikitext_by_wiki.values():
@@ -330,6 +339,7 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_progress = 70
     db.session.commit()
 
+    _step(7, 'LLM extraction')
     # ── Step 7: LLM extraction (70 → 85%) ────────────────────────────────────
     if profile.llm_consent is True:
         from src.llm import extract_userbox_suggestions, extract_proud_of_suggestions
@@ -358,6 +368,7 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_progress = 85
     db.session.commit()
 
+    _step(8, 'user rights')
     # ── Step 8: user rights for qualifying wikis (85 → 95%) ──────────────────
     all_rights: list[str] = []
     for dbname in qualifying_wikis:
@@ -395,6 +406,7 @@ def _run(app: Flask, username: str) -> None:
     profile.gather_progress = 95
     db.session.commit()
 
+    _step(9, 'finalise')
     # ── Step 9: finalise (95 → 100%) ─────────────────────────────────────────
     profile.gather_status    = 'done'
     profile.gather_error     = None
