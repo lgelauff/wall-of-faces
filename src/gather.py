@@ -161,8 +161,6 @@ def _run(app: Flask, username: str) -> None:
         raise RuntimeError(f'No profile found for {username!r}')
 
     user_id = profile.id
-    profile.gather_status = 'running'
-    db.session.commit()
 
     # ── Step 1: clear cache (0 → 5%) ─────────────────────────────────────────
     GatherCache.query.filter_by(user_id=user_id).delete()
@@ -196,6 +194,11 @@ def _run(app: Flask, username: str) -> None:
     elif profile.wiki_gender == 'female':
         pref_userboxes.append({'icon': '♀', 'label': 'This user prefers to be described as female'})
     _flush(_cache_items(user_id, 'identity', 'userbox', pref_userboxes, source='api'))
+
+    # Mark as running now — pref_userboxes are in the DB so the buffet page
+    # shows something useful the moment gather.js redirects the user here.
+    profile.gather_status = 'running'
+    db.session.commit()
 
     # ── Step 2: global account info + per-wiki edit counts (5 → 15%) ─────────
     try:

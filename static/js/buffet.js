@@ -319,12 +319,20 @@
 
   // ── Gather-progress polling ───────────────────────────────────────────────
   // If gather is still running when the buffet page loads, poll every 3 s.
-  // Once gather is done (status 'done' or 'error'), reload the page once so
-  // the user sees the final full set of suggestions.
+  // Reload at key progress milestones so new data sections appear incrementally.
+  // Final reload happens when gather reaches 'done' or 'error'.
+  //
+  // Milestones match when data is flushed to DB in gather.py:
+  //   70 — avatars + barnstars written
+  //   85 — LLM userboxes + proud-of written
+  //   95 — badges written
+  //  100 — gather complete
 
   const elBanner = document.getElementById('gathering-banner');
   if (elBanner) {
     let gatherPollTimer = null;
+    const RELOAD_MILESTONES = [70, 85, 95];
+    let lastReloadProgress = parseInt(elBanner.dataset.progress || '0', 10);
 
     function updateBanner(pct) {
       const fill = elBanner.querySelector('.gathering-banner__fill');
@@ -339,8 +347,15 @@
         if (data.status === 'done' || data.status === 'error') {
           clearInterval(gatherPollTimer);
           window.location.reload();
-        } else if (data.progress != null) {
-          updateBanner(data.progress);
+          return;
+        }
+        const pct = data.progress || 0;
+        updateBanner(pct);
+        // Reload when we cross a milestone for the first time
+        const crossed = RELOAD_MILESTONES.find(m => m > lastReloadProgress && pct >= m);
+        if (crossed !== undefined) {
+          lastReloadProgress = pct;
+          window.location.reload();
         }
       } catch (_) { /* network error — keep polling */ }
     }

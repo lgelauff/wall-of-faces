@@ -583,3 +583,14 @@ textarea { resize: vertical; }
   font-size: 0.85rem;
   color: #3a6080;
 }
+
+/* ── Signature preview ────────────────────────────────────────────────────── */
+
+.signature-preview {
+  padding: 0.4rem 0.75rem;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}

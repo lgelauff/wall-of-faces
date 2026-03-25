@@ -170,6 +170,14 @@
       <p class="field-description">{{ t('buffet.home_wiki_hint') }}</p>
     </div>
 
+    {# Signature — always available from profile, no gather needed #}
+    {% if profile.signature_html %}
+    <div class="buffet-section">
+      <div class="buffet-section__title">{{ t('buffet.signature') }}</div>
+      <div class="signature-preview">{{ profile.signature_html | safe }}</div>
+    </div>
+    {% endif %}
+
     {# Userboxes #}
     <div class="buffet-section">
       <div class="buffet-section__title">Userboxes</div>

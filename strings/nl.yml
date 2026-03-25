@@ -33,6 +33,7 @@ gather.start: Gegevens ophalen
 
 # ── Buffet screen ───────────────────────────────────────────────
 buffet.title: Stel je kaart samen
+buffet.signature: Handtekening
 buffet.gathering: "Gegevens worden nog verzameld — resultaten verschijnen zodra ze beschikbaar zijn. Ververs om bij te werken."
 buffet.explanation: Uitleg
 buffet.infobox: Infobox
