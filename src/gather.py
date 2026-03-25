@@ -95,7 +95,7 @@ def _cache_items(
     rows = []
     for item in items:
         try:
-            payload = json.dumps(item, ensure_ascii=False)
+            payload = json.dumps(item, ensure_ascii=True)
         except (TypeError, ValueError):
             continue
         rows.append(GatherCache(
