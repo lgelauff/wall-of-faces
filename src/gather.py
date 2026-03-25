@@ -161,6 +161,8 @@ def _run(app: Flask, username: str) -> None:
         raise RuntimeError(f'No profile found for {username!r}')
 
     user_id = profile.id
+    profile.gather_status = 'running'
+    db.session.commit()
 
     # ── Step 1: clear cache (0 → 5%) ─────────────────────────────────────────
     GatherCache.query.filter_by(user_id=user_id).delete()
