@@ -64,7 +64,7 @@ buffet.proud_of_placeholder: "Naam van artikel of afbeelding"
 buffet.proud_of_wiki_placeholder: "wiki (bijv. enwiki)"
 buffet.home_base_hint: "Stad of regio waar je woont"
 buffet.home_wiki_hint: "Je meest actieve wiki — bepaalt hoe je naam op de kaart verschijnt"
-buffet.home_wiki_placeholder: "bijv. nlwiki of enwiki"
+buffet.home_wiki_placeholder: "bijv. nl.wikipedia.org"
 buffet.profile_picture: Profielfoto
 buffet.profile_picture_manual: "Of voer een bestandsnaam handmatig in:"
 buffet.content_images: Afbeeldingen

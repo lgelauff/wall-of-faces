@@ -715,8 +715,13 @@ def _register_routes(app: Flask) -> None:  # noqa: C901 (intentionally long)
 
         if 'home_wiki'                 in data:
             v = (data['home_wiki'] or '').strip().lower()
-            if v and not re.fullmatch(r'[a-z]{1,20}(wiki|wiktionary|wikisource|wikiquote|wikibooks|wikinews|wikiversity|wikivoyage)', v):
-                return invalid('home_wiki', 'unrecognised wiki dbname')
+            if v:
+                from src.wiki import url_to_dbname as _url_to_dbname
+                # Accept both URL format (nl.wikipedia.org) and dbname format (nlwiki)
+                if '.' in v:
+                    v = _url_to_dbname(v) or v
+                if not re.fullmatch(r'[a-z]{1,20}(wiki|wiktionary|wikisource|wikiquote|wikibooks|wikinews|wikiversity|wikivoyage)', v):
+                    return invalid('home_wiki', 'unrecognised wiki')
             profile.home_wiki = v or None
 
         if 'home_base'                 in data:

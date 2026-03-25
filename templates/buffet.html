@@ -160,13 +160,10 @@
         <div style="flex:1">
           <input id="input-home-wiki"
                  type="text"
-                 maxlength="50"
+                 maxlength="100"
                  placeholder="{{ t('buffet.home_wiki_placeholder') }}"
-                 value="{{ profile_home_wiki }}"
+                 value="{{ profile_home_wiki_url or profile_home_wiki }}"
                  data-field="home_wiki">
-          {% if profile_home_wiki_url %}
-            <div class="field-hint">{{ profile_home_wiki_url }}</div>
-          {% endif %}
         </div>
       </div>
       <p class="field-description">{{ t('buffet.home_wiki_hint') }}</p>

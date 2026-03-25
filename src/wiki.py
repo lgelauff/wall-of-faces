@@ -94,6 +94,52 @@ def dbname_to_url(dbname: str) -> str | None:
     return None
 
 
+# Reverse map for url_to_dbname
+_SPECIAL_WIKIS_BY_HOST: dict[str, str] = {
+    v.replace('https://', ''): k for k, v in _SPECIAL_WIKIS.items()
+}
+
+_URL_PROJECT_SUFFIX: dict[str, str] = {
+    'wikipedia':   'wiki',
+    'wiktionary':  'wiktionary',
+    'wikisource':  'wikisource',
+    'wikiquote':   'wikiquote',
+    'wikibooks':   'wikibooks',
+    'wikinews':    'wikinews',
+    'wikiversity': 'wikiversity',
+    'wikivoyage':  'wikivoyage',
+}
+
+
+def url_to_dbname(url: str) -> str | None:
+    """
+    Convert a wiki URL (with or without scheme) to its dbname.
+
+    Examples:
+        'nl.wikipedia.org'              → 'nlwiki'
+        'https://nl.wikipedia.org'      → 'nlwiki'
+        'commons.wikimedia.org'         → 'commonswiki'
+        'fr.wikisource.org'             → 'frwikisource'
+
+    Returns None for unrecognised patterns.
+    """
+    host = url.lower().strip()
+    host = host.removeprefix('https://').removeprefix('http://')
+    host = host.rstrip('/').split('/')[0]   # strip any path
+
+    if host in _SPECIAL_WIKIS_BY_HOST:
+        return _SPECIAL_WIKIS_BY_HOST[host]
+
+    # {lang}.{project}.org
+    parts = host.split('.')
+    if len(parts) == 3 and parts[2] == 'org':
+        lang, project = parts[0], parts[1]
+        if lang and project in _URL_PROJECT_SUFFIX:
+            return lang + _URL_PROJECT_SUFFIX[project]
+
+    return None
+
+
 # Interwiki short-codes for projects when linking from a Wikipedia-based home wiki.
 # Maps project suffix → canonical short prefix (wiktionary → wikt, etc.)
 _INTERWIKI_PROJECT_PREFIX: dict[str, str] = {

@@ -63,7 +63,7 @@ buffet.proud_of_placeholder: "Article or file name"
 buffet.proud_of_wiki_placeholder: "wiki (e.g. enwiki)"
 buffet.home_base_hint: "City or region where you live"
 buffet.home_wiki_hint: "Your most active wiki — determines how your name appears on the card"
-buffet.home_wiki_placeholder: "e.g. nlwiki, enwiki"
+buffet.home_wiki_placeholder: "e.g. nl.wikipedia.org"
 buffet.profile_picture: Profile picture
 buffet.profile_picture_manual: "Or enter a filename manually:"
 buffet.content_images: Images
