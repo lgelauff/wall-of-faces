@@ -51,6 +51,7 @@ body {
 .site-nav__link { color: #3366cc; text-decoration: none; }
 .site-nav__link:hover { text-decoration: underline; }
 
+.site-nav__link--admin { color: #888; font-size: 0.85em; }
 .site-nav__link--danger { color: #d33; background: none; border: none; cursor: pointer; font: inherit; padding: 0; }
 .site-nav__link--danger:hover { text-decoration: underline; }
 

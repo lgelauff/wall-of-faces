@@ -29,6 +29,7 @@
 
   <nav class="site-nav">
     <a class="site-nav__title" href="{{ url_for('index') }}">{{ event_name }}</a>
+    {% if is_admin %}<a class="site-nav__link site-nav__link--admin" href="{{ url_for('admin') }}">[admin]</a>{% endif %}
     <div class="site-nav__right">
       {% if session.get('username') %}
         <span class="site-nav__username">{{ session.username }}</span>
