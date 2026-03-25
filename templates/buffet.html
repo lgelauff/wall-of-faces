@@ -128,7 +128,7 @@
                  title="{{ item.filename }}">
           {% endfor %}
         </div>
-      {% elif gathering %}
+      {% elif gathering and gather_progress < 70 %}
         <p class="gathering-placeholder">{{ t('buffet.gathering_avatars') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
@@ -205,10 +205,10 @@
             </div>
           {% endfor %}
         </div>
-        {% if gathering %}
+        {% if gathering and gather_progress < 85 %}
           <p class="gathering-placeholder gathering-placeholder--inline">{{ t('buffet.gathering_userboxes_more') }}</p>
         {% endif %}
-      {% elif gathering %}
+      {% elif gathering and gather_progress < 15 %}
         <p class="gathering-placeholder">{{ t('buffet.gathering_userboxes') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
@@ -249,7 +249,7 @@
                  title="{{ item.filename }}">
           {% endfor %}
         </div>
-      {% elif gathering %}
+      {% elif gathering and gather_progress < 70 %}
         <p class="gathering-placeholder">{{ t('buffet.gathering_avatars') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
@@ -336,7 +336,7 @@
             </div>
           {% endfor %}
         </div>
-      {% elif gathering %}
+      {% elif gathering and gather_progress < 70 %}
         <p class="gathering-placeholder">{{ t('buffet.gathering_barnstars') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
@@ -367,7 +367,7 @@
             </div>
           {% endfor %}
         </div>
-      {% elif gathering %}
+      {% elif gathering and gather_progress < 95 %}
         <p class="gathering-placeholder">{{ t('buffet.gathering_badges') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
@@ -377,7 +377,7 @@
     {# Proud of — LLM suggestions + manual input #}
     <div class="buffet-section">
       <div class="buffet-section__title">{{ t('card.proud_of') }}</div>
-      {% if not proud_of_cache and gathering %}
+      {% if not proud_of_cache and gathering and gather_progress < 85 %}
         <p class="gathering-placeholder">{{ t('buffet.gathering_proud_of') }}</p>
       {% endif %}
       {% if proud_of_cache %}
