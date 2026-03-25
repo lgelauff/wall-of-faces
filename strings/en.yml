@@ -44,6 +44,12 @@ gather.expected_duration: "Takes {min} minutes on average — you can close this
 # ── Buffet screen ───────────────────────────────────────────────
 buffet.title: Build your card
 buffet.signature: Signature
+buffet.gathering_avatars: "Looking for profile pictures — check back soon."
+buffet.gathering_userboxes: "Gathering suggestions — check back soon."
+buffet.gathering_userboxes_more: "AI analysis still running — more suggestions may appear."
+buffet.gathering_barnstars: "Reading your talk page for barnstars — check back soon."
+buffet.gathering_badges: "Calculating your achievements — check back soon."
+buffet.gathering_proud_of: "AI analysis still running — article suggestions will appear here."
 buffet.gathering: "Still gathering data — results will appear as they come in. Reload to refresh."
 buffet.explanation: Explanation
 buffet.infobox: Infobox

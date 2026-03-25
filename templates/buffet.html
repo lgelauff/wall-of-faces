@@ -128,6 +128,8 @@
                  title="{{ item.filename }}">
           {% endfor %}
         </div>
+      {% elif gathering %}
+        <p class="gathering-placeholder">{{ t('buffet.gathering_avatars') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
       {% endif %}
@@ -203,6 +205,11 @@
             </div>
           {% endfor %}
         </div>
+        {% if gathering %}
+          <p class="gathering-placeholder gathering-placeholder--inline">{{ t('buffet.gathering_userboxes_more') }}</p>
+        {% endif %}
+      {% elif gathering %}
+        <p class="gathering-placeholder">{{ t('buffet.gathering_userboxes') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
       {% endif %}
@@ -242,6 +249,8 @@
                  title="{{ item.filename }}">
           {% endfor %}
         </div>
+      {% elif gathering %}
+        <p class="gathering-placeholder">{{ t('buffet.gathering_avatars') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
       {% endif %}
@@ -327,6 +336,8 @@
             </div>
           {% endfor %}
         </div>
+      {% elif gathering %}
+        <p class="gathering-placeholder">{{ t('buffet.gathering_barnstars') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
       {% endif %}
@@ -356,6 +367,8 @@
             </div>
           {% endfor %}
         </div>
+      {% elif gathering %}
+        <p class="gathering-placeholder">{{ t('buffet.gathering_badges') }}</p>
       {% else %}
         <p class="empty-notice">{{ t('buffet.no_suggestions') }}</p>
       {% endif %}
@@ -364,6 +377,9 @@
     {# Proud of — LLM suggestions + manual input #}
     <div class="buffet-section">
       <div class="buffet-section__title">{{ t('card.proud_of') }}</div>
+      {% if not proud_of_cache and gathering %}
+        <p class="gathering-placeholder">{{ t('buffet.gathering_proud_of') }}</p>
+      {% endif %}
       {% if proud_of_cache %}
         <p style="font-size:0.85rem;color:#54595d;margin-bottom:0.5rem">
           {{ t('buffet.proud_of_input') }}

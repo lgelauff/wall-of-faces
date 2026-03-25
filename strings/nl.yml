@@ -44,6 +44,12 @@ gather.step_finishing: "Afronden…"
 # ── Buffet screen ───────────────────────────────────────────────
 buffet.title: Stel je kaart samen
 buffet.signature: Handtekening
+buffet.gathering_avatars: "Profielfoto's worden gezocht — kom zo terug."
+buffet.gathering_userboxes: "Suggesties worden verzameld — kom zo terug."
+buffet.gathering_userboxes_more: "AI-analyse nog bezig — er kunnen meer suggesties verschijnen."
+buffet.gathering_barnstars: "Overlegpagina wordt gelezen op barnsterren — kom zo terug."
+buffet.gathering_badges: "Prestaties worden berekend — kom zo terug."
+buffet.gathering_proud_of: "AI-analyse nog bezig — artikelsuggesties verschijnen hier."
 buffet.gathering: "Gegevens worden nog verzameld — resultaten verschijnen zodra ze beschikbaar zijn. Ververs om bij te werken."
 buffet.explanation: Uitleg
 buffet.infobox: Infobox
