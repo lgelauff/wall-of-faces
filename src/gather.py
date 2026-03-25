@@ -156,7 +156,7 @@ def _run(app: Flask, username: str) -> None:
     max_wikis     = app.config['GATHER_MAX_QUALIFYING_WIKIS']
 
     def _step(n: int, label: str) -> None:
-        log.info('Gather [%s] step %d: %s', username, n, label)
+        log.warning('Gather [%s] step %d: %s', username, n, label)
 
     # ── Step 0: resolve profile ───────────────────────────────────────────────
     profile = UserProfile.query.filter_by(username=username).first()
