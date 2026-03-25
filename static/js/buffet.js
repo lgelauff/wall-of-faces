@@ -51,10 +51,10 @@
     }
   }
 
-  // Lazily load all images that have a data-filename attribute and empty src
+  // Lazily load all images that have a data-filename attribute and no real src
   async function loadImages() {
     for (const img of document.querySelectorAll('img[data-filename]')) {
-      if (img.src && !img.src.endsWith('/')) continue; // already loaded
+      if (img.getAttribute('src')) continue; // already has an explicit src
       const url = await resolveImage(img.dataset.filename, img.classList.contains('avatar-option') ? 80 : 40);
       if (url) img.src = url;
     }

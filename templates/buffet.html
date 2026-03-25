@@ -319,7 +319,10 @@
             <div class="buffet-item{% if is_accepted %} is-accepted{% endif %}"
                  data-type="barnstar"
                  data-payload="{{ item | tojson }}">
-              <img class="buffet-item__thumb" src="" alt="{{ item.name }}" data-filename="{{ item.filename }}">
+              <img class="buffet-item__thumb"
+                   src="{{ item.thumb_url or '' }}"
+                   alt="{{ item.name }}"
+                   {% if not item.thumb_url %}data-filename="{{ item.filename }}"{% endif %}>
               <div class="buffet-item__body">
                 <div class="buffet-item__label">{{ item.name }}</div>
                 <div class="buffet-item__meta">{{ item.filename }}</div>

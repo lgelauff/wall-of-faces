@@ -324,6 +324,18 @@ def _run(app: Flask, username: str) -> None:
 
     barnstars = detect_barnstars(all_wikitext_pages)
 
+    # Pre-fetch thumbnail URLs for detected barnstars (single batched API call,
+    # low-res 40 px) so buffet.html can render them without a JS round-trip.
+    if barnstars:
+        thumb_map = wiki_mod.get_commons_thumbnails(
+            [bs['filename'] for bs in barnstars if bs.get('filename')],
+            width=200,  # 34px CSS @ 96dpi = 8.9mm on A5; 2× headroom for sharp 300dpi print
+        )
+        for bs in barnstars:
+            fn = bs.get('filename', '')
+            if fn in thumb_map:
+                bs['thumb_url'] = thumb_map[fn]
+
     # Remove barnstar images from avatar candidates — userpage image scraping
     # picks up all embedded images, including barnstar icons.
     barnstar_filenames = {bs['filename'] for bs in barnstars if bs.get('filename')}

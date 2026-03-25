@@ -12,14 +12,18 @@ Functions called by gather.py:
     get_wikitext(wiki_url, title)                 → str
     get_userpage_images(wiki_url, username)       → list[str]
     get_commons_category_images(username)         → list[str]
+    get_commons_thumbnails(filenames, width)      → dict[str, str]
     get_wikidata_p18(wiki_url, username)          → str | None
     dbname_to_url(dbname)                         → str
 """
 
 from __future__ import annotations
 
+import json
+import os
 import re
 import time
+from pathlib import Path
 from typing import Any
 
 import requests
@@ -375,6 +379,131 @@ def get_commons_category_images(username: str, limit: int = 10) -> list[str]:
         except Exception:
             continue
     return []
+
+
+# ── Thumbnail URL cache ───────────────────────────────────────────────────────
+#
+# Two-layer cache for Commons thumbnail URLs:
+#
+#   1. In-process dict  (_thumb_cache) — zero-cost lookup within a process run.
+#   2. Disk JSON file   (_THUMB_CACHE_PATH) — survives uWSGI restarts; loaded
+#      once at first use, written after each batch of new entries.
+#
+# Barnstar filenames come from a finite registry (~30–50 entries). Once every
+# known barnstar has been seen by at least one user, all subsequent gathers
+# (re-gathers or new users with the same barnstars) never touch the Commons API.
+#
+# File location: $HOME/.cache/wof_thumb_cache.json  (writable on Toolforge NFS).
+# Fallback: <this file's parent>/../.claude/wof_thumb_cache.json (local dev).
+
+_THUMB_CACHE_PATH: Path = (
+    Path(os.environ.get('HOME', '')) / '.cache' / 'wof_thumb_cache.json'
+    if os.environ.get('HOME')
+    else Path(__file__).parent.parent / '.claude' / 'wof_thumb_cache.json'
+)
+
+# In-memory mirror: key = "filename_lower:width", value = url
+_thumb_cache: dict[str, str] = {}
+_thumb_cache_loaded: bool = False
+
+
+def _thumb_cache_key(filename: str, width: int) -> str:
+    return f'{filename.lower()}:{width}'
+
+
+def _load_thumb_cache() -> None:
+    global _thumb_cache_loaded
+    if _thumb_cache_loaded:
+        return
+    _thumb_cache_loaded = True
+    try:
+        if _THUMB_CACHE_PATH.exists():
+            data = json.loads(_THUMB_CACHE_PATH.read_text(encoding='utf-8'))
+            if isinstance(data, dict):
+                _thumb_cache.update(data)
+    except Exception:
+        pass  # corrupt or unreadable — start fresh
+
+
+def _save_thumb_cache() -> None:
+    try:
+        _THUMB_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _THUMB_CACHE_PATH.write_text(
+            json.dumps(_thumb_cache, ensure_ascii=True, indent=None),
+            encoding='utf-8',
+        )
+    except Exception:
+        pass  # non-fatal: cache will just miss on next restart
+
+
+def get_commons_thumbnails(
+    filenames: list[str],
+    width: int = 200,
+) -> dict[str, str]:
+    """
+    Fetch thumbnail URLs for a list of Commons filenames in a single API call.
+
+    Returns a dict mapping filename → thumbnail URL.
+    Filenames not found on Commons are omitted from the result.
+
+    Two-layer cache (in-process dict + disk JSON) means:
+    - Same filename at same width is never fetched twice within a process run.
+    - Cache survives uWSGI restarts; barnstar URLs are stable and never expire.
+    - Different users sharing the same barnstar image share the cached URL.
+
+    At most 50 filenames per call (MediaWiki API limit).
+    """
+    if not filenames:
+        return {}
+
+    _load_thumb_cache()
+
+    result: dict[str, str] = {}
+    missing: list[str] = []
+
+    for fn in filenames[:50]:
+        key = _thumb_cache_key(fn, width)
+        if key in _thumb_cache:
+            result[fn] = _thumb_cache[key]
+        else:
+            missing.append(fn)
+
+    if not missing:
+        return result
+
+    titles = '|'.join(f'File:{fn}' for fn in missing)
+    try:
+        data = _api(_COMMONS_URL, {
+            'action':     'query',
+            'prop':       'imageinfo',
+            'iiprop':     'url',
+            'iiurlwidth': str(width),
+            'titles':     titles,
+            'format':     'json',
+            'formatversion': '2',
+        })
+    except Exception:
+        return result  # return whatever we got from cache
+
+    new_entries = False
+    for page in data.get('query', {}).get('pages', []):
+        if page.get('missing'):
+            continue
+        title = page.get('title', '')
+        if not title.startswith('File:'):
+            continue
+        fn = title[len('File:'):]
+        ii = page.get('imageinfo', [{}])[0]
+        url = ii.get('thumburl') or ii.get('url')
+        if url:
+            _thumb_cache[_thumb_cache_key(fn, width)] = url
+            result[fn] = url
+            new_entries = True
+
+    if new_entries:
+        _save_thumb_cache()
+
+    return result
 
 
 def get_wikidata_p18(wiki_url: str, username: str) -> str | None:
