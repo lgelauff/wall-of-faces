@@ -327,22 +327,16 @@ def render_card(profile: Any, image_dir: str) -> bytes:
         worker = os.path.join(current_app.root_path, 'src', 'weasyprint_worker.py')
 
         # sys.executable is the uWSGI binary when running under uWSGI, not Python.
-        # Find the venv Python by checking known locations: Toolforge layout first
-        # (../www/python/venv relative to app root), then local .venv.
-        exe = sys.executable
-        if 'python' not in os.path.basename(exe).lower():
-            candidates = [
-                os.path.normpath(os.path.join(
-                    current_app.root_path, '..', 'www', 'python', 'venv', 'bin', 'python3'
-                )),
-                os.path.join(current_app.root_path, '.venv', 'bin', 'python3'),
-            ]
-            for candidate in candidates:
-                if os.path.isfile(candidate):
-                    exe = candidate
-                    break
-            else:
-                exe = shutil.which('python3') or exe
+        # Find the Python that has WeasyPrint installed by walking up from its
+        # __file__: .../venv/lib/python3.x/site-packages/weasyprint/__init__.py
+        # → 5 parents up → venv root → bin/python3.
+        import weasyprint as _wp
+        import pathlib
+        _venv = pathlib.Path(_wp.__file__).parents[4]
+        _venv_python = _venv / 'bin' / 'python3'
+        exe = str(_venv_python) if _venv_python.is_file() else (
+            shutil.which('python3') or sys.executable
+        )
 
         try:
             subprocess.run(
