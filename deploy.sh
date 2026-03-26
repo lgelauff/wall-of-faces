@@ -10,7 +10,7 @@ echo "Deploying commit: $(git log -1 --format='%h %s (%ci)')"
 uv pip install --python ~/www/python/venv/bin/python -r requirements.txt
 
 # Regenerate fonts.conf for WeasyPrint (points to bundled native fonts in ~/deps)
-mkdir -p ~/deps/etc/fonts
+mkdir -p ~/deps/etc/fonts ~/.fontconfig
 cat > ~/deps/etc/fonts/fonts.conf <<EOF
 <?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
@@ -19,6 +19,9 @@ cat > ~/deps/etc/fonts/fonts.conf <<EOF
   <cachedir>$HOME/.fontconfig</cachedir>
 </fontconfig>
 EOF
+
+# Pre-warm fontconfig cache so first PDF render doesn't time out
+FONTCONFIG_FILE=~/deps/etc/fonts/fonts.conf LD_LIBRARY_PATH=~/deps/usr/lib/x86_64-linux-gnu fc-list > /dev/null 2>&1 || true
 
 cd ~
 webservice --backend=kubernetes python3.13 restart

@@ -342,7 +342,7 @@ def render_card(profile: Any, image_dir: str) -> bytes:
         try:
             subprocess.run(
                 [_venv_python, worker, html_path, pdf_path],
-                timeout=60,
+                timeout=120,
                 check=True,
                 capture_output=True,
             )
@@ -355,7 +355,7 @@ def render_card(profile: Any, image_dir: str) -> bytes:
                 f'WeasyPrint failed (exe={_venv_python}): {stderr}'
             ) from exc
         except subprocess.TimeoutExpired:
-            raise CardOverflowError('PDF render timed out — card may be too complex')
+            raise CardOverflowError('PDF render timed out after 120s')
 
         with open(pdf_path, 'rb') as f:
             pdf_bytes = f.read()
