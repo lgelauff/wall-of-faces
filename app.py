@@ -34,7 +34,7 @@ SERVER_NAME_URL                = "https://tools.wmcloud.org/wall-of-faces"
 
 # Storage & retention
 # Override via SNAPSHOT_ROOT env var for local development (e.g. /tmp/wof-snapshots)
-SNAPSHOT_ROOT                  = _os.environ.get('SNAPSHOT_ROOT', '/data/project/wall-of-faces/snapshots')
+SNAPSHOT_ROOT                  = _os.environ.get('SNAPSHOT_ROOT', '/data/project/profile-creator-nlwiki/snapshots')
 SNAPSHOT_STORAGE_WARNING_GB    = 5
 SNAPSHOT_MAX_VERSIONS_PER_USER = 10
 SNAPSHOT_INACTIVE_PRUNE_DAYS   = 365
