@@ -21,7 +21,7 @@ cat > ~/deps/etc/fonts/fonts.conf <<EOF
 EOF
 
 # Pre-warm fontconfig cache so first PDF render doesn't time out
-FONTCONFIG_FILE=~/deps/etc/fonts/fonts.conf LD_LIBRARY_PATH=~/deps/usr/lib/x86_64-linux-gnu fc-list > /dev/null 2>&1 || true
+FONTCONFIG_FILE=~/deps/etc/fonts/fonts.conf LD_LIBRARY_PATH=~/deps/usr/lib/x86_64-linux-gnu ~/deps/usr/bin/fc-cache -f ~/deps/usr/share/fonts
 
 cd ~
 webservice --backend=kubernetes python3.13 restart
