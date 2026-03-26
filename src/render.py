@@ -352,11 +352,11 @@ def render_card(profile: Any, image_dir: str) -> bytes:
                 capture_output=True,
             )
         except subprocess.CalledProcessError as exc:
+            stderr = exc.stderr.decode(errors='replace').strip()
             current_app.logger.warning(
-                'WeasyPrint worker failed: %s',
-                exc.stderr.decode(errors='replace'),
+                'WeasyPrint worker failed (exe=%s): %s', exe, stderr,
             )
-            raise
+            raise RuntimeError(f'WeasyPrint failed (exe={exe}): {stderr}') from exc
         except subprocess.TimeoutExpired:
             raise CardOverflowError('PDF render timed out — card may be too complex')
 
