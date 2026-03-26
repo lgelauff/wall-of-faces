@@ -22,7 +22,7 @@ body {
 }
 
 .preview-label {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-size: 11px;
   color: #666;
   letter-spacing: 0.04em;
@@ -95,7 +95,7 @@ body {
   width: 175px;
   margin: 0 0 8px 11px;
   border: 1px solid #a2a9b1;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-size: 6.8pt;
   background: #fff;
   clear: right;
@@ -110,7 +110,7 @@ body {
   color: #000;
   border-bottom: 1px solid #a2a9b1;
   line-height: 1.2;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
 }
 
 .infobox-image {
@@ -278,7 +278,7 @@ body {
 .extra-section-title {
   font-size: 7pt;
   font-weight: bold;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   color: #54595d;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -310,7 +310,7 @@ body {
 }
 
 .bar-label {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-size: 5.8pt;
   font-weight: 700;
   text-transform: uppercase;
@@ -355,7 +355,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-size: 5.5pt;
   color: #9ca3af;
   text-align: center;
@@ -363,7 +363,7 @@ body {
 }
 
 .trots-title {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-size: 5.5pt;
   color: #3366cc;
   text-align: center;
@@ -421,7 +421,7 @@ body {
 }
 
 .barnstar-name {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-size: 5pt;
   color: #54595d;
   text-align: center;
@@ -446,7 +446,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 6.5pt;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
   border: 1.5px solid;
@@ -459,7 +459,7 @@ body {
 .badge-circle.red    { background: #fff5f5; border-color: #f09090; }
 
 .badge-name {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-size: 5pt;
   color: #54595d;
   text-align: center;
@@ -501,13 +501,13 @@ body {
 }
 
 .footer-text {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-size: 5.5pt;
   color: #72777d;
 }
 
 .footer-event {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Liberation Sans', sans-serif;
   font-size: 5.5pt;
   color: #a2a9b1;
   font-style: italic;
