@@ -33,10 +33,10 @@
   function checkOverflow() {
     const card = document.querySelector('.card');
     if (!card) return;
-    // Compare actual content height against the card's visible height rather
-    // than a hardcoded constant — works regardless of browser zoom or CSS changes.
     const overflows = card.scrollHeight > card.clientHeight;
     elOverflowWarn.classList.toggle('is-visible', overflows);
+    elBtnFinalize.disabled = overflows;
+    elBtnFinalize.title = overflows ? elOverflowWarn.textContent.trim() : '';
   }
 
   // Run once and on resize
@@ -64,7 +64,7 @@
       const data = await resp.json();
 
       if (resp.status === 422 && data.error === 'card_overflow') {
-        alert(i18n.overflow_error);
+        alert(data.detail || i18n.overflow_error);
         return;
       }
 

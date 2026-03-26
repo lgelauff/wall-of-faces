@@ -236,12 +236,13 @@ body {
 .finalize-notice { font-size: 0.85rem; color: #54595d; flex: 1; }
 
 .overflow-warning {
-  background: #fef6e4;
-  border: 1px solid #f0bc00;
+  background: #fee7e6;
+  border: 1px solid #d33;
   border-radius: 4px;
   padding: 0.6rem 1rem;
   margin-bottom: 0.75rem;
   font-size: 0.9rem;
+  font-weight: bold;
   display: none;
 }
 
