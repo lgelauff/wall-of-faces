@@ -18,7 +18,7 @@ Project-specific instructions and lessons for AI assistants working on this code
 ## Key technical decisions (do not revisit without discussion)
 
 - WeasyPrint runs via subprocess (`weasyprint_worker.py`) with `safe_url_fetcher` enforced.
-- `sys.executable` (not `'python3'`) to invoke the worker — same interpreter/venv.
+- WeasyPrint worker uses the venv Python derived from `weasyprint.__file__` (not `sys.executable` — that returns the uWSGI binary on Toolforge).
 - Badge icons: short text ≤4 chars, NOT emoji (Cairo cannot embed Apple Color Emoji in PDF).
 - CSS is inlined in PDF HTML — no URL resolution issues in WeasyPrint.
 - `UTCDateTime` TypeDecorator — MySQL `DateTime(timezone=True)` is a silent no-op.
@@ -39,6 +39,8 @@ Project-specific instructions and lessons for AI assistants working on this code
 - **Replica databases are Toolforge-only** — code that queries `*.labsdb` will fail locally; the gather flow skips those steps gracefully.
 - **Flask-Session actual table name is `sessions`** (not `flask_sessions`) — raw SQL queries must use `sessions`.
 - **`NOW()` is MySQL-only** — all raw SQL uses `:now` bound parameter with `utcnow().replace(tzinfo=None)`.
+- **WeasyPrint needs native libs not in the container** — `libgobject`, `libpango` etc. must be pre-downloaded to `~/deps/` and `LD_LIBRARY_PATH` set via `toolforge envvars`. On a fresh install: `cd ~/deps && apt-get download libglib2.0-0t64 libpango-1.0-0 libpangoft2-1.0-0 libfontconfig1 libfreetype6 libharfbuzz0b libffi8 libpcre2-8-0 libpixman-1-0 libpng16-16t64 libcairo2 libgraphite2-3 libexpat1 libbrotli1 libuuid1 && for deb in *.deb; do dpkg-deb -x "$deb" .; done && rm *.deb`, then `toolforge envvars create LD_LIBRARY_PATH /data/project/profile-creator-nlwiki/deps/usr/lib/x86_64-linux-gnu`. May need additional libs — check with `toolforge jobs run test-ldd --image python3.13 --command "LD_LIBRARY_PATH=... ldd .../libpango-1.0.so.0"`.
+- **`SNAPSHOT_ROOT`** defaults to `/data/project/profile-creator-nlwiki/snapshots` — create this directory on first deploy: `mkdir -p /data/project/profile-creator-nlwiki/snapshots`.
 
 ---
 
