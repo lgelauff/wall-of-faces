@@ -90,6 +90,9 @@ buffet.explanation_accomplishments_body: >
 # ── Card preview ────────────────────────────────────────────────
 card.preview_title: Card preview
 card.preview_label: "Wall of Faces · Card preview · A5"
+card.preview_instruction: "This is what your card looks like. Happy with it? Click 'Generate PDF', check the PDF, and download it."
+card.generate_pdf: "Generate PDF"
+card.download_pdf: "⬇ Download PDF"
 card.overflow_warning: "⚠ Your card is too full — remove or shorten content until everything fits."
 card.finalized_notice: "Your card was finalized on {date}."
 card.processed_notice: "Your card has been downloaded for processing. Later changes may not be printed."

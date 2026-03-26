@@ -92,6 +92,9 @@ buffet.explanation_accomplishments_body: >
 # ── Card preview ────────────────────────────────────────────────
 card.preview_title: Kaartvoorbeeld
 card.preview_label: "Wall of Faces · Kaartvoorbeeld · A5 (148 × 210 mm)"
+card.preview_instruction: "Zo ziet je kaart eruit. Tevreden? Klik op 'PDF genereren', controleer de PDF en download hem."
+card.generate_pdf: "PDF genereren"
+card.download_pdf: "⬇ PDF downloaden"
 card.overflow_warning: "⚠ Je kaart is te vol — verwijder of verkort inhoud totdat alles past."
 card.finalized_notice: "Je kaart is gefinaliseerd op {date}."
 card.processed_notice: "Je kaart is gedownload voor verwerking. Latere wijzigingen worden mogelijk niet afgedrukt."

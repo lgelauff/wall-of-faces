@@ -18,6 +18,16 @@
   {% include "card_content.html" %}
 
   <div class="finalize-bar">
+    <p class="finalize-instruction">{{ t('card.preview_instruction') }}</p>
+    <div class="finalize-bar__actions">
+      <a class="btn btn--secondary" href="{{ url_for('buffet') }}">← {{ t('nav.back') }}</a>
+      <button class="btn btn--primary" id="btn-finalize">{{ t('card.generate_pdf') }}</button>
+      {% if profile.snapshot_version %}
+      <a class="btn btn--primary" id="btn-download-pdf" href="{{ url_for('download_pdf') }}">{{ t('card.download_pdf') }}</a>
+      {% else %}
+      <a class="btn btn--primary" id="btn-download-pdf" href="{{ url_for('download_pdf') }}" style="display:none">{{ t('card.download_pdf') }}</a>
+      {% endif %}
+    </div>
     <span class="finalize-notice" id="finalize-notice">
       {% if profile.processed_at %}
         {{ t('card.processed_notice') }}
@@ -25,8 +35,6 @@
         {{ t('card.finalized_notice', date=profile.snapshot_at.strftime('%d-%m-%Y')) }}
       {% endif %}
     </span>
-    <a class="btn btn--secondary" href="{{ url_for('buffet') }}">← {{ t('nav.back') }}</a>
-    <button class="btn btn--primary" id="btn-finalize">{{ t('nav.finalize') }} →</button>
   </div>
 </div>
 

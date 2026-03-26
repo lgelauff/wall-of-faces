@@ -860,6 +860,32 @@ def _register_routes(app: Flask) -> None:  # noqa: C901 (intentionally long)
             'snapshot_at':      snapshot_at.isoformat(),
         })
 
+    # ── Download PDF ──────────────────────────────────────────────────────────
+
+    @app.get('/download-pdf')
+    @login_required
+    def download_pdf():
+        from flask import send_file
+        from src.snapshot import safe_username_dir
+        username = session['username']
+        profile  = UserProfile.query.filter_by(username=username).first_or_404()
+        if not profile.snapshot_version:
+            return 'Geen PDF beschikbaar', 404
+        pdf_path = os.path.join(
+            app.config['SNAPSHOT_ROOT'],
+            safe_username_dir(username, profile.id),
+            profile.snapshot_version,
+            'card.pdf',
+        )
+        if not os.path.isfile(pdf_path):
+            return 'PDF niet gevonden', 404
+        return send_file(
+            pdf_path,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'kaart-{username}.pdf',
+        )
+
     # ── API: resolve-image ────────────────────────────────────────────────────
 
     @app.get('/api/resolve-image')

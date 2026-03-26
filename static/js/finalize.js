@@ -89,10 +89,12 @@
       }
 
       if (resp.ok) {
-        // Success — update notice without page reload
+        // Success — update notice and show download button
         const d = new Date(data.snapshot_at);
         const formatted = d.toLocaleDateString('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' });
         elFinalizeNotice.textContent = `Je kaart is gefinaliseerd op ${formatted}.`;
+        const elDownload = document.getElementById('btn-download-pdf');
+        if (elDownload) elDownload.style.display = '';
       }
 
     } catch (_) {
