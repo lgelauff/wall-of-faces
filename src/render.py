@@ -327,10 +327,13 @@ def render_card(profile: Any, image_dir: str) -> bytes:
         worker = os.path.join(current_app.root_path, 'src', 'weasyprint_worker.py')
 
         # sys.executable is the uWSGI binary when running under uWSGI, not Python.
-        # Fall back to PATH lookup so the venv Python is used.
+        # sys.prefix always points to the active venv root, so derive Python from there.
         exe = sys.executable
         if 'python' not in os.path.basename(exe).lower():
-            exe = shutil.which('python3') or shutil.which('python') or exe
+            venv_python = os.path.join(sys.prefix, 'bin', 'python3')
+            exe = venv_python if os.path.isfile(venv_python) else (
+                shutil.which('python3') or exe
+            )
 
         try:
             subprocess.run(
