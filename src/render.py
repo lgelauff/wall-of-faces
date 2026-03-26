@@ -35,6 +35,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -325,9 +326,15 @@ def render_card(profile: Any, image_dir: str) -> bytes:
 
         worker = os.path.join(current_app.root_path, 'src', 'weasyprint_worker.py')
 
+        # sys.executable is the uWSGI binary when running under uWSGI, not Python.
+        # Fall back to PATH lookup so the venv Python is used.
+        exe = sys.executable
+        if 'python' not in os.path.basename(exe).lower():
+            exe = shutil.which('python3') or shutil.which('python') or exe
+
         try:
             subprocess.run(
-                [sys.executable, worker, html_path, pdf_path],
+                [exe, worker, html_path, pdf_path],
                 timeout=60,
                 check=True,
                 capture_output=True,
