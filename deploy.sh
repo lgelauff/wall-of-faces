@@ -8,6 +8,18 @@ cd ~/wall-of-faces
 git pull
 echo "Deploying commit: $(git log -1 --format='%h %s (%ci)')"
 uv pip install --python ~/www/python/venv/bin/python -r requirements.txt
+
+# Regenerate fonts.conf for WeasyPrint (points to bundled native fonts in ~/deps)
+mkdir -p ~/deps/etc/fonts
+cat > ~/deps/etc/fonts/fonts.conf <<EOF
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <dir>$HOME/deps/usr/share/fonts</dir>
+  <cachedir>$HOME/.fontconfig</cachedir>
+</fontconfig>
+EOF
+
 cd ~
 webservice --backend=kubernetes python3.13 restart
 echo "Deploy done at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
