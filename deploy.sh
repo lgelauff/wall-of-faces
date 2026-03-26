@@ -6,6 +6,8 @@ set -euo pipefail
 
 cd ~/wall-of-faces
 git pull
+echo "Deploying commit: $(git log -1 --format='%h %s (%ci)')"
 uv pip install --python ~/www/python/venv/bin/python -r requirements.txt
 cd ~
 webservice --backend=kubernetes python3.13 restart
+echo "Deploy done at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"

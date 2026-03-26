@@ -333,14 +333,15 @@ def render_card(profile: Any, image_dir: str) -> bytes:
         import weasyprint as _wp
         import pathlib
         _venv = pathlib.Path(_wp.__file__).parents[4]
-        _venv_python = _venv / 'bin' / 'python3'
-        exe = str(_venv_python) if _venv_python.is_file() else (
-            shutil.which('python3') or sys.executable
+        _venv_python = next(
+            (str(_venv / 'bin' / n) for n in ('python3', 'python')
+             if (_venv / 'bin' / n).is_file()),
+            shutil.which('python3') or sys.executable,
         )
 
         try:
             subprocess.run(
-                [exe, worker, html_path, pdf_path],
+                [_venv_python, worker, html_path, pdf_path],
                 timeout=60,
                 check=True,
                 capture_output=True,
@@ -348,9 +349,11 @@ def render_card(profile: Any, image_dir: str) -> bytes:
         except subprocess.CalledProcessError as exc:
             stderr = exc.stderr.decode(errors='replace').strip()
             current_app.logger.warning(
-                'WeasyPrint worker failed (exe=%s): %s', exe, stderr,
+                'WeasyPrint worker failed (exe=%s): %s', _venv_python, stderr,
             )
-            raise RuntimeError(f'WeasyPrint failed (exe={exe}): {stderr}') from exc
+            raise RuntimeError(
+                f'WeasyPrint failed (exe={_venv_python}): {stderr}'
+            ) from exc
         except subprocess.TimeoutExpired:
             raise CardOverflowError('PDF render timed out — card may be too complex')
 
