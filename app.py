@@ -851,6 +851,9 @@ def _register_routes(app: Flask) -> None:  # noqa: C901 (intentionally long)
             version, snapshot_at = _do_snapshot(profile, triggered_by_user=True)
         except CardOverflowError as exc:
             return jsonify({'error': 'card_overflow', 'detail': str(exc)}), 422
+        except Exception as exc:
+            app.logger.error('Finalize failed for %s: %s', username, exc, exc_info=True)
+            return jsonify({'error': 'render_failed', 'detail': str(exc)}), 500
 
         return jsonify({
             'snapshot_version': version,

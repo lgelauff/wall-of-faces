@@ -314,6 +314,12 @@ body {
 }
 .buffet-panel-nav .btn:only-child { margin-left: auto; }
 
+.buffet-panel-finalize {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
 .buffet-section     { margin-bottom: 2rem; }
 .buffet-section__title {
   font-size: 1rem;

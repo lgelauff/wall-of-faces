@@ -83,6 +83,11 @@
         return;
       }
 
+      if (!resp.ok) {
+        alert(data.detail || 'Er is een fout opgetreden. Probeer opnieuw.');
+        return;
+      }
+
       if (resp.ok) {
         // Success — update notice without page reload
         const d = new Date(data.snapshot_at);
